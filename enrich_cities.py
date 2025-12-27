@@ -129,20 +129,6 @@ def enrich_details(source_prop: str, details_prop: str):
 
 _latlon_re = re.compile(r"—\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*$")
 
-def parse_details_latlon(details: str):
-    """
-    Ex: 'Paris, Île-de-France, France — 48.8566, 2.3522'
-    -> (48.8566, 2.3522)
-    """
-    if not details:
-        return None
-    m = _latlon_re.search(details)
-    if not m:
-        return None
-    return float(m.group(1)), float(m.group(2))
-
-_latlon_re = re.compile(r"—\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*$")
-
 def parse_details(details: str):
     """
     Ex: 'Paris, Île-de-France, France — 48.8566, 2.3522'

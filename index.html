@@ -11,6 +11,9 @@
       crossorigin=""
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
     <style>
       html, body { height: 100%; margin: 0; }
@@ -91,6 +94,12 @@
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19
       }).addTo(map);
+
+      const markerCluster = L.markerClusterGroup();
+      const transportLayer = L.layerGroup();
+
+      markerCluster.addTo(map);
+      transportLayer.addTo(map);
 
       // Simple colored markers
       const depIcon = new L.Icon({
@@ -182,73 +191,84 @@
         return Array.isArray(trips) ? trips : [];
       }
 
-      function addTripsToMap(trips) {
+      function addTripsToMap(records) {
+        markerCluster.clearLayers();
+        transportLayer.clearLayers();
+
         const bounds = L.latLngBounds([]);
         let totalKm = 0;
 
-        trips.forEach((t, i) => {
-          const dep = t.departure;
-          const arr = t.arrival;
+        records.forEach((r) => {
+          const depDate = formatDateFr(r.departure_date);
+          const arrDate = formatDateFr(r.arrival_date);
 
-          if (!isValidLatLon(dep) || !isValidLatLon(arr)) return;
+          const cityArr = ((r.arrival_label || "Arrival").split(",")[0] || "Arrival").trim();
+          const tag = r.type ? `(${r.type})` : "";
 
-          const depLatLng = L.latLng(dep[0], dep[1]);
-          const arrLatLng = L.latLng(arr[0], arr[1]);
+          // Always at least an arrival marker (Hotel etc.)
+          if (Array.isArray(r.arrival) && r.arrival.length === 2) {
+            const arr = L.latLng(r.arrival[0], r.arrival[1]);
+            bounds.extend(arr);
 
-          // Labels (fallback)
-          const depLabel = t.departure_label || "Departure";
-          const arrLabel = t.arrival_label || "Arrival";
-          const arrLabelCity = (arrLabel.split(",")[0] || arrLabel).trim();
-          const depDate = formatDateFr(t.departure_date);
-          const arrDate = formatDateFr(t.arrival_date);
+            // Stay (no departure)
+            if (r.kind === "stay" || !r.departure) {
+              const m = L.marker(arr, { icon: arrIcon }).bindPopup(`
+                <div style="font-family: ui-sans-serif, system-ui;">
+                  <div style="font-weight:800;">${cityArr} ${tag}</div>
+                  <div style="margin-top:6px;"><b>Arrival:</b> ${arrDate}</div>
+                  <div style="margin-top:4px;"><b>Departure:</b> ${depDate}</div>
+                </div>
+              `);
+              markerCluster.addLayer(m);
+              return;
+            }
+          }
 
-          // Distance (fallback: compute rough if absent)
-          const distKm = typeof t.distance_km === "number" ? t.distance_km : null;
-          if (distKm !== null) totalKm += distKm;
+          // Transport
+          if (Array.isArray(r.departure) && r.departure.length === 2 && Array.isArray(r.arrival) && r.arrival.length === 2) {
+            const dep = L.latLng(r.departure[0], r.departure[1]);
+            const arr = L.latLng(r.arrival[0], r.arrival[1]);
+            bounds.extend(dep);
+            bounds.extend(arr);
 
-          // Markers + popups
-          L.marker(depLatLng, { icon: depIcon }).addTo(map).bindPopup(`
-            <div style="font-family: ui-sans-serif, system-ui;">
-              <div style="font-weight:800;">${arrLabelCity}</div>
-              <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
-              <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
-              ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
-            </div>
-          `);
+            const cityDep = ((r.departure_label || "Departure").split(",")[0] || "Departure").trim();
+            const title = `${cityDep} → ${cityArr} ${tag}`;
 
-          L.marker(arrLatLng, { icon: arrIcon }).addTo(map).bindPopup(`
-            <div style="font-family: ui-sans-serif, system-ui;">
-              <div style="font-weight:800;">${arrLabelCity}</div>
-              <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
-              <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
-              ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
-            </div>
-          `);
+            if (typeof r.distance_km === "number") totalKm += r.distance_km;
 
-          // Curved line + animation
-          const curve = interpolateCurve(depLatLng, arrLatLng, 48);
-          const path = L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(map);
+            // Line
+            const curve = interpolateCurve(dep, arr, 48);
+            L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(transportLayer);
 
-          bounds.extend(depLatLng);
-          bounds.extend(arrLatLng);
+            // Markers
+            const popup = `
+              <div style="font-family: ui-sans-serif, system-ui;">
+                <div style="font-weight:800;">${title}</div>
+                <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
+                <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
+                ${typeof r.distance_km === "number" ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>` : ``}
+              </div>
+            `;
+
+            markerCluster.addLayer(L.marker(dep, { icon: depIcon }).bindPopup(popup));
+            markerCluster.addLayer(L.marker(arr, { icon: arrIcon }).bindPopup(popup));
+          }
         });
 
-        // Update KPIs
-        document.getElementById("kpiTrips").textContent = trips.length.toLocaleString("fr-FR");
+        // KPIs
+        document.getElementById("kpiTrips").textContent = records.length.toLocaleString("fr-FR");
         document.getElementById("kpiDistance").textContent = totalKm > 0 ? formatKm(totalKm) : "—";
 
-        // Fit bounds
-        if (bounds.isValid()) {
-          map.fitBounds(bounds.pad(0.2));
-        }
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
       }
+
 
       (async () => {
         try {
-          const trips = await loadTrips();
-          addTripsToMap(trips);
+          const records = await loadTrips();
+          addTripsToMap(records);
 
-          if (trips.length === 0) {
+          if (records.length === 0) {
             L.popup()
               .setLatLng([20, 0])
               .setContent("Aucun trajet à afficher (cities.json est vide).")
