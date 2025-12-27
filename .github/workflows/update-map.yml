@@ -1,24 +1,37 @@
-name: Update map data
+name: Update trips.json from Notion
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests python-dotenv
-      - run: python export_trips.py
+
+      - name: Install deps
+        run: pip install requests python-dotenv
+
+      - name: Export trips
+        run: python export_trips.py
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-      - run: |
+          NOMINATIM_USER_AGENT: ${{ secrets.NOMINATIM_USER_AGENT }}
+
+      - name: Commit & push if changed
+        run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add trips.json
-          git commit -m "Update trips" || echo "No changes"
+          git commit -m "Update trips.json" || echo "No changes"
           git push

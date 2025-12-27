@@ -13,7 +13,7 @@ NOMINATIM_USER_AGENT = os.environ.get(
     "NOMINATIM_USER_AGENT",
     "NotionCityEnricher/1.0 (contact: you@example.com)"
 )
-m
+
 NOTION_API_BASE = "https://api.notion.com/v1"
 NOTION_VERSION = os.environ.get("NOTION_VERSION", "2022-06-28")
 
