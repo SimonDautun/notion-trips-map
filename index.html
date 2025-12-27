@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
+    <!-- Arrow heads on polylines -->
+    <script src="https://unpkg.com/leaflet-polylinedecorator@1.7.0/dist/leaflet.polylineDecorator.min.js"></script>
+
     <style>
       html, body { height: 100%; margin: 0; }
       #map { height: 100vh; width: 100vw; }
@@ -21,7 +24,7 @@
         top: 12px;
         left: 12px;
         z-index: 9999;
-        width: 360px;
+        width: 380px;
         max-width: calc(100vw - 24px);
         background: rgba(255,255,255,0.94);
         border-radius: 14px;
@@ -40,12 +43,9 @@
       .header h1 {
         font-size: 14px;
         margin: 0;
-        font-weight: 800;
+        font-weight: 900;
       }
-      .sub {
-        font-size: 12px;
-        opacity: .7;
-      }
+      .sub { font-size: 12px; opacity: .7; }
 
       .kpis { display: flex; gap: 10px; margin-bottom: 10px; }
       .kpi {
@@ -92,8 +92,8 @@
       .badge { padding:2px 8px; border-radius:999px; background: rgba(0,0,0,0.08); font-size: 11px; }
 
       .card.green { border-left: 4px solid #2a9d4b; }
-      .card.red { border-left: 4px solid #d33; }
       .card.blue { border-left: 4px solid #2b6cb0; }
+      .card.gray { border-left: 4px solid rgba(0,0,0,0.25); }
 
       .muted { opacity: .75; }
 
@@ -127,9 +127,10 @@
       </div>
 
       <div class="legendRow">
-        <div class="legend-item"><span class="dot dep"></span>Departure</div>
-        <div class="legend-item"><span class="dot arr"></span>Arrival</div>
-        <div class="legend-item"><span class="line"></span>Trajet</div>
+        <div class="legend-item"><span class="dot dep"></span>Ville départ</div>
+        <div class="legend-item"><span class="dot arr"></span>Ville arrivée / séjour</div>
+        <div class="legend-item"><span class="line" style="background:#2b6cb0;"></span>Flight</div>
+        <div class="legend-item"><span class="line" style="background:#2a9d4b;"></span>Train</div>
       </div>
 
       <div class="lists">
@@ -190,7 +191,6 @@
       function dateLabel(depIso, arrIso) {
         const d1 = formatDateFr(depIso);
         const d2 = formatDateFr(arrIso);
-        // si pas d'arrivée => "Date"
         if (!arrIso) return `Date: ${d1}`;
         return `${d1} → ${d2}`;
       }
@@ -206,6 +206,37 @@
         const d = new Date(depIso.slice(0,10));
         const diff = Math.round((d - a) / (1000*60*60*24));
         return isFinite(diff) ? diff : null;
+      }
+
+      function isoDay(r) {
+        const s = (r.departure_date || r.arrival_date || "");
+        return s ? s.slice(0, 10) : "0000-00-00";
+      }
+
+      function prettyDay(iso) {
+        if (!iso || iso === "0000-00-00") return "Date inconnue";
+        return iso.split("-").reverse().join("/");
+      }
+
+      function normType(t) {
+        return String(t || "").toLowerCase();
+      }
+
+      function lineColorForType(t) {
+        const x = normType(t);
+        if (x.includes("flight") || x.includes("plane") || x.includes("avion")) return "#2b6cb0"; // blue
+        if (x.includes("train")) return "#2a9d4b"; // green
+        return "#2b6cb0";
+      }
+
+      function lineWeightForType(t) {
+        const x = normType(t);
+        if (x.includes("train")) return 4;
+        return 3;
+      }
+
+      function midpoint(a, b) {
+        return L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
       }
 
       // Great-circle-ish curve interpolation
@@ -254,6 +285,13 @@
         return [...records].sort((a,b) => key(a).localeCompare(key(b)));
       }
 
+      function cardClassForType(t) {
+        const x = normType(t);
+        if (x.includes("train")) return "green";
+        if (x.includes("flight") || x.includes("plane") || x.includes("avion")) return "blue";
+        return "gray";
+      }
+
       function render(records) {
         markerCluster.clearLayers();
         transportLayer.clearLayers();
@@ -265,14 +303,16 @@
 
         const sorted = sortByDate(records);
 
-        // markers to open popup on click from cards
-        const cardTargets = new Map(); // id -> { bounds, open: () => {} }
+        // click targets from timeline
+        const cardTargets = new Map(); // id -> { bounds, open() }
 
-        let transportIndex = 0;
+        let lastTripDay = null;
+        let lastStayDay = null;
 
         sorted.forEach((r, idx) => {
           const kind = r.kind || (r.departure ? "transport" : "stay");
           const ttype = r.type || "Unknown";
+          const day = isoDay(r);
 
           const arrLatLng = (Array.isArray(r.arrival) && r.arrival.length === 2)
             ? L.latLng(r.arrival[0], r.arrival[1])
@@ -283,6 +323,17 @@
           // -------- STAY --------
           if (kind === "stay" || !r.departure) {
             if (!arrLatLng) return;
+
+            if (day !== lastStayDay) {
+              lastStayDay = day;
+              const sep = document.createElement("div");
+              sep.className = "muted";
+              sep.style.fontSize = "12px";
+              sep.style.fontWeight = "900";
+              sep.style.margin = "10px 0 2px";
+              sep.textContent = prettyDay(day);
+              document.getElementById("stayList").appendChild(sep);
+            }
 
             const city = cityOnly(r.arrival_label, "City");
             const arrD = formatDateFr(r.arrival_date);
@@ -300,6 +351,7 @@
               </div>
             `;
 
+            // stay marker is visible and can keep its popup
             const marker = L.marker(arrLatLng, { icon: arrIcon }).bindPopup(popup);
             markerCluster.addLayer(marker);
 
@@ -309,9 +361,8 @@
               open: () => marker.openPopup()
             });
 
-            // Card
             const card = document.createElement("div");
-            card.className = "card blue";
+            card.className = `card ${cardClassForType(ttype)}`;
             card.innerHTML = `
               <div class="title">${city}</div>
               <div class="meta">
@@ -322,8 +373,7 @@
             card.addEventListener("click", () => {
               const target = cardTargets.get(id);
               if (!target) return;
-              map.fitBounds(target.bounds.pad(0.6));
-              // open popup a tick later so cluster expands if needed
+              map.fitBounds(target.bounds.pad(0.7));
               setTimeout(() => target.open(), 200);
             });
             document.getElementById("stayList").appendChild(card);
@@ -333,70 +383,104 @@
           // -------- TRANSPORT --------
           if (!Array.isArray(r.departure) || r.departure.length !== 2 || !arrLatLng) return;
 
+          if (day !== lastTripDay) {
+            lastTripDay = day;
+            const sep = document.createElement("div");
+            sep.className = "muted";
+            sep.style.fontSize = "12px";
+            sep.style.fontWeight = "900";
+            sep.style.margin = "10px 0 2px";
+            sep.textContent = prettyDay(day);
+            document.getElementById("tripList").appendChild(sep);
+          }
+
           const depLatLng = L.latLng(r.departure[0], r.departure[1]);
           bounds.extend(depLatLng);
 
           const depCity = cityOnly(r.departure_label, "Departure");
           const arrCity = cityOnly(r.arrival_label, "Arrival");
-
           const title = `${depCity} → ${arrCity}`;
-          const dLabel = dateLabel(r.departure_date, r.arrival_date);
 
           if (typeof r.distance_km === "number") totalKm += r.distance_km;
 
-          // Line
+          // LINE (colored by type)
           const curve = interpolateCurve(depLatLng, arrLatLng, 48);
-          L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(transportLayer);
+          const color = lineColorForType(ttype);
+          const weight = lineWeightForType(ttype);
+
+          const line = L.polyline(curve, {
+            color,
+            weight,
+            opacity: 0.9,
+            className: "flight-path"
+          }).addTo(transportLayer);
+
+          // Arrow head (direction)
+          L.polylineDecorator(line, {
+            patterns: [
+              {
+                offset: "60%",
+                repeat: 0,
+                symbol: L.Symbol.arrowHead({
+                  pixelSize: 12,
+                  polygon: false,
+                  pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
+                })
+              }
+            ]
+          }).addTo(transportLayer);
+
+          // City markers (NO transport popup on them)
+          markerCluster.addLayer(L.marker(depLatLng, { icon: depIcon }));
+          markerCluster.addLayer(L.marker(arrLatLng, { icon: arrIcon }));
+
+          // Transport popup attached to the ARROW (midpoint marker invisible)
+          const depD = formatDateFr(r.departure_date);
+          const arrD = formatDateFr(r.arrival_date);
+          const dLabel = (!r.arrival_date) ? depD : `${depD} → ${arrD}`;
 
           const distLine = (typeof r.distance_km === "number")
             ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>`
             : "";
 
-          // Popup: if no arrival_date, we show only Date
-          const depD = formatDateFr(r.departure_date);
-          const arrD = formatDateFr(r.arrival_date);
-          const dateBlock = (!r.arrival_date)
-            ? `<div style="margin-top:6px;"><b>Date:</b> ${depD}</div>`
-            : `<div style="margin-top:6px;"><b>Départ:</b> ${depD}</div><div style="margin-top:4px;"><b>Arrivée:</b> ${arrD}</div>`;
-
           const popup = `
             <div style="font-family: ui-sans-serif, system-ui;">
               <div style="font-weight:900;">${title}</div>
               <div style="margin-top:6px;opacity:.8;">${ttype}</div>
-              ${dateBlock}
+              <div style="margin-top:6px;"><b>Date:</b> ${dLabel}</div>
               ${distLine}
             </div>
           `;
 
-          const mDep = L.marker(depLatLng, { icon: depIcon }).bindPopup(popup);
-          const mArr = L.marker(arrLatLng, { icon: arrIcon }).bindPopup(popup);
-          markerCluster.addLayer(mDep);
-          markerCluster.addLayer(mArr);
+          const mid = midpoint(depLatLng, arrLatLng);
+          const transportMarker = L.marker(mid, { opacity: 0, interactive: true }).bindPopup(popup);
+          markerCluster.addLayer(transportMarker);
 
+          // Clicking the line opens the popup on the arrow
+          line.on("click", () => transportMarker.openPopup());
+
+          // Card target
           const id = `trip-${idx}`;
           cardTargets.set(id, {
             bounds: L.latLngBounds([depLatLng, arrLatLng]),
-            open: () => mArr.openPopup()
+            open: () => transportMarker.openPopup()
           });
 
-          // Card color: alternating for readability
-          const colorClass = (transportIndex % 2 === 0) ? "green" : "red";
-          transportIndex += 1;
-
+          // Timeline card (colored by type)
           const card = document.createElement("div");
-          card.className = `card ${colorClass}`;
+          card.className = `card ${cardClassForType(ttype)}`;
           card.innerHTML = `
             <div class="title">${title}</div>
             <div class="meta">
               <span class="badge">${ttype}</span>
-              <span class="badge">${dLabel}</span>
+              <span class="badge">${dateLabel(r.departure_date, r.arrival_date)}</span>
               ${typeof r.distance_km === "number" ? `<span class="badge">${Math.round(r.distance_km).toLocaleString("fr-FR")} km</span>` : ``}
             </div>
           `;
           card.addEventListener("click", () => {
             const target = cardTargets.get(id);
             if (!target) return;
-            map.fitBounds(target.bounds.pad(0.5));
+            map.fitBounds(target.bounds.pad(0.55));
             setTimeout(() => target.open(), 200);
           });
           document.getElementById("tripList").appendChild(card);
@@ -405,8 +489,6 @@
         // KPIs
         document.getElementById("kpiItems").textContent = sorted.length.toLocaleString("fr-FR");
         document.getElementById("kpiDistance").textContent = totalKm > 0 ? formatKm(totalKm) : "—";
-
-        // "Last updated" (best effort: now, since GH Pages doesn't expose file mtime easily)
         document.getElementById("lastUpdated").textContent = "maj: " + new Date().toLocaleDateString("fr-FR");
 
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
