@@ -49,6 +49,12 @@ def extract_title(page, prop_name: str) -> str | None:
     text = "".join([p.get("plain_text", "") for p in parts]).strip()
     return text or None
 
+def extract_select(page, prop_name: str) -> str | None:
+    prop = page["properties"].get(prop_name)
+    if not prop or prop.get("type") != "select" or not prop.get("select"):
+        return None
+    return prop["select"].get("name")
+
 def set_rich_text(page_id: str, prop_name: str, value: str):
     payload = {"properties": {prop_name: {"rich_text": [{"text": {"content": value}}]}}}
     r = notion.patch(f"{NOTION_API_BASE}/pages/{page_id}", json=payload, timeout=30)
@@ -160,30 +166,12 @@ def haversine_km(lat1, lon1, lat2, lon2):
     return R * c
 
 def export_cities_json(filepath="cities.json"):
-    """
-    Export all rows that have BOTH Arrival details and Departure details.
-
-    Output format:
-    [
-      {
-        "name": "Trip name",
-        "departure": [lat, lon],
-        "arrival": [lat, lon],
-        "departure_label": "Paris, Île-de-France, France",
-        "arrival_label": "Rome, Lazio, Italy",
-        "distance_km": 1105.42,
-        "departure_date": "2025-12-01",
-        "arrival_date": "2025-12-10"
-      }
-    ]
-    """
     trips = []
     cursor = None
 
     filter_payload = {
         "and": [
-            {"property": "Arrival details", "rich_text": {"is_not_empty": True}},
-            {"property": "Departure details", "rich_text": {"is_not_empty": True}},
+            {"property": "Arrival details", "rich_text": {"is_not_empty": True}}
         ]
     }
 
@@ -191,28 +179,47 @@ def export_cities_json(filepath="cities.json"):
         res = query_pages(filter_payload=filter_payload, start_cursor=cursor)
 
         for page in res.get("results", []):
+            trip_type = extract_select(page, "Type") or "Unknown"
             name = extract_title(page, "Name") or "Trip"
-            dep_date, arr_date = extract_date_range(page, "Date")  # start=departure, end=arrival
+            dep_date, arr_date = extract_date_range(page, "Date")
 
             arr_details = extract_rich_text(page, "Arrival details") or ""
             dep_details = extract_rich_text(page, "Departure details") or ""
 
             arr = parse_details(arr_details)
             dep = parse_details(dep_details)
-            if not arr or not dep:
-                continue
 
-            dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
+            if not arr:
+                continue  # impossible à placer sur la carte
 
-            trips.append({
+            base = {
                 "name": name,
-                "departure": [dep["lat"], dep["lon"]],
-                "arrival": [arr["lat"], arr["lon"]],
-                "departure_label": dep["label"],
-                "arrival_label": arr["label"],
-                "distance_km": round(dist, 2),
+                "type": trip_type,
                 "departure_date": dep_date,
                 "arrival_date": arr_date,
+                "arrival": [arr["lat"], arr["lon"]],
+                "arrival_label": arr["label"],
+            }
+
+            # Stay (Hotel/Nid d'aigle): pas de departure
+            if not dep:
+                trips.append({
+                    **base,
+                    "kind": "stay",
+                    "departure": None,
+                    "departure_label": None,
+                    "distance_km": None,
+                })
+                continue
+
+            # Transport
+            dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
+            trips.append({
+                **base,
+                "kind": "transport",
+                "departure": [dep["lat"], dep["lon"]],
+                "departure_label": dep["label"],
+                "distance_km": round(dist, 2),
             })
 
         if not res.get("has_more"):
@@ -222,7 +229,8 @@ def export_cities_json(filepath="cities.json"):
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(trips, f, ensure_ascii=False, indent=2)
 
-    print(f"Exported {len(trips)} trip(s) to {filepath}")
+    print(f"Exported {len(trips)} record(s) to {filepath}")
+
 
 def main():
     a = enrich_details("Arrival", "Arrival details")

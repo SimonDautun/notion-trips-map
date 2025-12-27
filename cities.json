@@ -1,114 +1,248 @@
 [
   {
     "name": "[Transport] - BJG → SHG",
-    "departure": [
-      31.2312707,
-      121.4700152
-    ],
+    "type": "Train",
+    "departure_date": "2026-01-20",
+    "arrival_date": null,
     "arrival": [
       40.190632,
       116.412144
     ],
-    "departure_label": "Shanghaï, 上海市, 中国",
     "arrival_label": "Beijing, 北京市, 中国",
-    "distance_km": 1095.4,
-    "departure_date": "2026-01-20",
-    "arrival_date": null
+    "kind": "transport",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "departure_label": "Shanghaï, 上海市, 中国",
+    "distance_km": 1095.4
+  },
+  {
+    "name": "Yunan Trip - Ciel Chine",
+    "type": "Hotel",
+    "departure_date": "2026-01-03",
+    "arrival_date": "2026-01-09",
+    "arrival": [
+      25.0,
+      102.0
+    ],
+    "arrival_label": "Yunan, 云南省, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
   },
   {
     "name": "[Transport] - HKG → BJG",
+    "type": "Train",
+    "departure_date": "2026-01-18",
+    "arrival_date": null,
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "kind": "transport",
     "departure": [
       40.190632,
       116.412144
     ],
-    "arrival": [
-      31.2312707,
-      121.4700152
-    ],
     "departure_label": "Beijing, 北京市, 中国",
-    "arrival_label": "Shanghaï, 上海市, 中国",
-    "distance_km": 1095.4,
-    "departure_date": "2026-01-18",
-    "arrival_date": null
+    "distance_km": 1095.4
   },
   {
     "name": "[Transport] - KMG → HKG",
-    "departure": [
-      22.2792968,
-      114.1628907
-    ],
+    "type": "Flight",
+    "departure_date": "2026-01-11",
+    "arrival_date": null,
     "arrival": [
       25.0363006,
       102.7086139
     ],
-    "departure_label": "香港 Hong Kong, 中国",
     "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 1205.75,
-    "departure_date": "2026-01-11",
-    "arrival_date": null
+    "kind": "transport",
+    "departure": [
+      22.2792968,
+      114.1628907
+    ],
+    "departure_label": "香港 Hong Kong, 中国",
+    "distance_km": 1205.75
   },
   {
     "name": "[Transport] - HKG → SHG",
+    "type": "Train",
+    "departure_date": "2026-01-14",
+    "arrival_date": null,
+    "arrival": [
+      22.2792968,
+      114.1628907
+    ],
+    "arrival_label": "香港 Hong Kong, 中国",
+    "kind": "transport",
     "departure": [
       31.2312707,
       121.4700152
     ],
-    "arrival": [
-      22.2792968,
-      114.1628907
-    ],
     "departure_label": "Shanghaï, 上海市, 中国",
-    "arrival_label": "香港 Hong Kong, 中国",
-    "distance_km": 1230.94,
-    "departure_date": "2026-01-14",
-    "arrival_date": null
+    "distance_km": 1230.94
   },
   {
     "name": "[Transport] - SHL → KMG",
-    "departure": [
-      25.0363006,
-      102.7086139
-    ],
+    "type": "Train",
+    "departure_date": "2026-01-10",
+    "arrival_date": null,
     "arrival": [
       27.8717021,
       99.8365499
     ],
-    "departure_label": "昆明市, 云南省, 中国",
     "arrival_label": "Shangri-La, 云南省, 中国",
-    "distance_km": 425.58,
-    "departure_date": "2026-01-10",
-    "arrival_date": null
-  },
-  {
-    "name": "[Transport] - SHG → KMG",
+    "kind": "transport",
     "departure": [
       25.0363006,
       102.7086139
     ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "distance_km": 425.58
+  },
+  {
+    "name": "[Transport] - SHG → KMG",
+    "type": "Train",
+    "departure_date": "2026-01-02",
+    "arrival_date": null,
     "arrival": [
       31.2312707,
       121.4700152
     ],
-    "departure_label": "昆明市, 云南省, 中国",
     "arrival_label": "Shanghaï, 上海市, 中国",
-    "distance_km": 1961.14,
-    "departure_date": "2026-01-02",
-    "arrival_date": null
+    "kind": "transport",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "distance_km": 1961.14
   },
   {
     "name": "[Transport] - KMG →  LJG",
-    "departure": [
-      26.8595868,
-      100.2249797
-    ],
+    "type": "Train",
+    "departure_date": "2026-01-03",
+    "arrival_date": null,
     "arrival": [
       25.0363006,
       102.7086139
     ],
-    "departure_label": "丽江市, 云南省, 中国",
     "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 320.56,
-    "departure_date": "2026-01-03",
-    "arrival_date": null
+    "kind": "transport",
+    "departure": [
+      26.8595868,
+      100.2249797
+    ],
+    "departure_label": "丽江市, 云南省, 中国",
+    "distance_km": 320.56
+  },
+  {
+    "name": "[Hotel] - KMG - 2",
+    "type": "Hotel",
+    "departure_date": "2026-01-10",
+    "arrival_date": "2026-01-11",
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival_label": "昆明市, 云南省, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "[Hotel] - HKG",
+    "type": "Hotel",
+    "departure_date": "2026-01-11",
+    "arrival_date": "2026-01-14",
+    "arrival": [
+      22.2792968,
+      114.1628907
+    ],
+    "arrival_label": "香港 Hong Kong, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "[Hotel] - KMG - 1",
+    "type": "Hotel",
+    "departure_date": "2026-01-02",
+    "arrival_date": "2026-01-03",
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival_label": "昆明市, 云南省, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "[Hotel] - BJG",
+    "type": "Hotel",
+    "departure_date": "2026-01-18",
+    "arrival_date": "2026-01-20",
+    "arrival": [
+      40.190632,
+      116.412144
+    ],
+    "arrival_label": "Beijing, 北京市, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "Trip",
+    "type": "Le nid d'aigle",
+    "departure_date": "2025-12-30",
+    "arrival_date": "2026-01-02",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "Trip",
+    "type": "Le nid d'aigle",
+    "departure_date": "2026-01-14",
+    "arrival_date": "2026-01-18",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
+  },
+  {
+    "name": "Trip",
+    "type": "Le nid d'aigle",
+    "departure_date": "2026-01-20",
+    "arrival_date": "2026-01-21",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "kind": "stay",
+    "departure": null,
+    "departure_label": null,
+    "distance_km": null
   }
 ]

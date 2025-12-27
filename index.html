@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Notion Trips Map</title>
 
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      crossorigin=""
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -19,49 +16,93 @@
       html, body { height: 100%; margin: 0; }
       #map { height: 100vh; width: 100vw; }
 
-      /* Overlay: stats + legend */
       .overlay {
         position: absolute;
         top: 12px;
         left: 12px;
         z-index: 9999;
-        background: rgba(255,255,255,0.92);
-        border-radius: 12px;
-        padding: 10px 12px;
+        width: 360px;
+        max-width: calc(100vw - 24px);
+        background: rgba(255,255,255,0.94);
+        border-radius: 14px;
+        padding: 12px;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
         box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-        max-width: 320px;
       }
-      .overlay h1 {
+
+      .header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .header h1 {
         font-size: 14px;
-        margin: 0 0 8px;
-        font-weight: 700;
+        margin: 0;
+        font-weight: 800;
       }
-      .kpis { display: flex; gap: 10px; margin-bottom: 8px; }
+      .sub {
+        font-size: 12px;
+        opacity: .7;
+      }
+
+      .kpis { display: flex; gap: 10px; margin-bottom: 10px; }
       .kpi {
         flex: 1;
         background: rgba(0,0,0,0.04);
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 8px;
       }
       .kpi .label { font-size: 12px; opacity: 0.7; }
-      .kpi .value { font-size: 16px; font-weight: 800; margin-top: 2px; }
+      .kpi .value { font-size: 16px; font-weight: 900; margin-top: 2px; }
 
-      .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+      .legendRow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
       .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.85; }
       .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
       .dot.dep { background: #d33; }
       .dot.arr { background: #2a9d4b; }
       .line { width: 18px; height: 2px; background: #2b6cb0; border-radius: 2px; display: inline-block; }
 
+      .lists {
+        max-height: 56vh;
+        overflow: auto;
+        display: grid;
+        gap: 12px;
+        padding-right: 2px;
+      }
+
+      .sectionTitle {
+        font-weight: 900;
+        font-size: 12px;
+        margin: 0 0 6px;
+        opacity: .85;
+      }
+
+      .card {
+        border-radius: 14px;
+        padding: 9px 10px;
+        background: rgba(0,0,0,0.04);
+        cursor: pointer;
+        border: 1px solid rgba(0,0,0,0.06);
+      }
+      .card:hover { background: rgba(0,0,0,0.07); }
+      .card .title { font-weight: 900; font-size: 13px; }
+      .card .meta { margin-top: 4px; font-size: 12px; opacity: .82; display:flex; gap:6px; flex-wrap:wrap; }
+      .badge { padding:2px 8px; border-radius:999px; background: rgba(0,0,0,0.08); font-size: 11px; }
+
+      .card.green { border-left: 4px solid #2a9d4b; }
+      .card.red { border-left: 4px solid #d33; }
+      .card.blue { border-left: 4px solid #2b6cb0; }
+
+      .muted { opacity: .75; }
+
       /* Animated polylines (SVG) */
       .flight-path {
         stroke-dasharray: 8 10;
         animation: dash 2.2s linear infinite;
       }
-      @keyframes dash {
-        to { stroke-dashoffset: -18; }
-      }
+      @keyframes dash { to { stroke-dashoffset: -18; } }
     </style>
   </head>
 
@@ -69,21 +110,38 @@
     <div id="map"></div>
 
     <div class="overlay">
-      <h1>Trips</h1>
+      <div class="header">
+        <h1>Trips</h1>
+        <div class="sub" id="lastUpdated">—</div>
+      </div>
+
       <div class="kpis">
         <div class="kpi">
-          <div class="label">Trajets</div>
-          <div class="value" id="kpiTrips">—</div>
+          <div class="label">Items</div>
+          <div class="value" id="kpiItems">—</div>
         </div>
         <div class="kpi">
-          <div class="label">Distance totale</div>
+          <div class="label">Distance (transports)</div>
           <div class="value" id="kpiDistance">—</div>
         </div>
       </div>
-      <div class="legend">
+
+      <div class="legendRow">
         <div class="legend-item"><span class="dot dep"></span>Departure</div>
         <div class="legend-item"><span class="dot arr"></span>Arrival</div>
         <div class="legend-item"><span class="line"></span>Trajet</div>
+      </div>
+
+      <div class="lists">
+        <div>
+          <div class="sectionTitle">Trajets</div>
+          <div id="tripList" style="display:grid; gap:8px;"></div>
+        </div>
+
+        <div>
+          <div class="sectionTitle">Séjours</div>
+          <div id="stayList" style="display:grid; gap:8px;"></div>
+        </div>
       </div>
     </div>
 
@@ -97,11 +155,10 @@
 
       const markerCluster = L.markerClusterGroup();
       const transportLayer = L.layerGroup();
-
       markerCluster.addTo(map);
       transportLayer.addTo(map);
 
-      // Simple colored markers
+      // Icons
       const depIcon = new L.Icon({
         iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -120,14 +177,7 @@
         shadowSize: [41, 41]
       });
 
-      function isValidLatLon(x) {
-        return Array.isArray(x) && x.length === 2 &&
-          typeof x[0] === "number" && typeof x[1] === "number" &&
-          isFinite(x[0]) && isFinite(x[1]);
-      }
-
       function formatKm(km) {
-        // format FR avec séparateur de milliers
         return Math.round(km).toLocaleString("fr-FR") + " km";
       }
 
@@ -137,31 +187,41 @@
         return new Date(iso).toLocaleDateString("fr-FR");
       }
 
+      function dateLabel(depIso, arrIso) {
+        const d1 = formatDateFr(depIso);
+        const d2 = formatDateFr(arrIso);
+        // si pas d'arrivée => "Date"
+        if (!arrIso) return `Date: ${d1}`;
+        return `${d1} → ${d2}`;
+      }
 
-      // Great-circle-ish curve interpolation (lightweight)
-      function interpolateCurve(a, b, steps = 40) {
+      function cityOnly(label, fallback) {
+        if (!label) return fallback;
+        return (label.split(",")[0] || fallback).trim();
+      }
+
+      function nightsBetween(arrIso, depIso) {
+        if (!arrIso || !depIso) return null;
+        const a = new Date(arrIso.slice(0,10));
+        const d = new Date(depIso.slice(0,10));
+        const diff = Math.round((d - a) / (1000*60*60*24));
+        return isFinite(diff) ? diff : null;
+      }
+
+      // Great-circle-ish curve interpolation
+      function interpolateCurve(a, b, steps = 48) {
         const lat1 = a.lat * Math.PI / 180, lon1 = a.lng * Math.PI / 180;
         const lat2 = b.lat * Math.PI / 180, lon2 = b.lng * Math.PI / 180;
 
-        // Convert to cartesian
         function toXYZ(lat, lon) {
-          return {
-            x: Math.cos(lat) * Math.cos(lon),
-            y: Math.cos(lat) * Math.sin(lon),
-            z: Math.sin(lat)
-          };
+          return { x: Math.cos(lat) * Math.cos(lon), y: Math.cos(lat) * Math.sin(lon), z: Math.sin(lat) };
         }
         const A = toXYZ(lat1, lon1);
         const B = toXYZ(lat2, lon2);
 
-        // Angle between vectors
         const dot = A.x*B.x + A.y*B.y + A.z*B.z;
         const omega = Math.acos(Math.min(1, Math.max(-1, dot)));
-
-        // If points are identical or nearly so
-        if (!isFinite(omega) || omega < 1e-6) {
-          return [a, b];
-        }
+        if (!isFinite(omega) || omega < 1e-6) return [a, b];
 
         const sinOmega = Math.sin(omega);
         const points = [];
@@ -175,113 +235,196 @@
           const y = s1*A.y + s2*B.y;
           const z = s1*A.z + s2*B.z;
 
-          // back to lat/lon
           const lat = Math.atan2(z, Math.sqrt(x*x + y*y)) * 180 / Math.PI;
           const lon = Math.atan2(y, x) * 180 / Math.PI;
           points.push(L.latLng(lat, lon));
         }
-
         return points;
       }
 
-      async function loadTrips() {
+      async function loadRecords() {
         const res = await fetch("./cities.json", { cache: "no-store" });
         if (!res.ok) throw new Error(`Impossible de charger cities.json (${res.status})`);
-        const trips = await res.json();
-        return Array.isArray(trips) ? trips : [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
       }
 
-      function addTripsToMap(records) {
+      function sortByDate(records) {
+        const key = (r) => (r.departure_date || r.arrival_date || "");
+        return [...records].sort((a,b) => key(a).localeCompare(key(b)));
+      }
+
+      function render(records) {
         markerCluster.clearLayers();
         transportLayer.clearLayers();
+        document.getElementById("tripList").innerHTML = "";
+        document.getElementById("stayList").innerHTML = "";
 
         const bounds = L.latLngBounds([]);
         let totalKm = 0;
 
-        records.forEach((r) => {
-          const depDate = formatDateFr(r.departure_date);
-          const arrDate = formatDateFr(r.arrival_date);
+        const sorted = sortByDate(records);
 
-          const cityArr = ((r.arrival_label || "Arrival").split(",")[0] || "Arrival").trim();
-          const tag = r.type ? `(${r.type})` : "";
+        // markers to open popup on click from cards
+        const cardTargets = new Map(); // id -> { bounds, open: () => {} }
 
-          // Always at least an arrival marker (Hotel etc.)
-          if (Array.isArray(r.arrival) && r.arrival.length === 2) {
-            const arr = L.latLng(r.arrival[0], r.arrival[1]);
-            bounds.extend(arr);
+        let transportIndex = 0;
 
-            // Stay (no departure)
-            if (r.kind === "stay" || !r.departure) {
-              const m = L.marker(arr, { icon: arrIcon }).bindPopup(`
-                <div style="font-family: ui-sans-serif, system-ui;">
-                  <div style="font-weight:800;">${cityArr} ${tag}</div>
-                  <div style="margin-top:6px;"><b>Arrival:</b> ${arrDate}</div>
-                  <div style="margin-top:4px;"><b>Departure:</b> ${depDate}</div>
-                </div>
-              `);
-              markerCluster.addLayer(m);
-              return;
-            }
-          }
+        sorted.forEach((r, idx) => {
+          const kind = r.kind || (r.departure ? "transport" : "stay");
+          const ttype = r.type || "Unknown";
 
-          // Transport
-          if (Array.isArray(r.departure) && r.departure.length === 2 && Array.isArray(r.arrival) && r.arrival.length === 2) {
-            const dep = L.latLng(r.departure[0], r.departure[1]);
-            const arr = L.latLng(r.arrival[0], r.arrival[1]);
-            bounds.extend(dep);
-            bounds.extend(arr);
+          const arrLatLng = (Array.isArray(r.arrival) && r.arrival.length === 2)
+            ? L.latLng(r.arrival[0], r.arrival[1])
+            : null;
 
-            const cityDep = ((r.departure_label || "Departure").split(",")[0] || "Departure").trim();
-            const title = `${cityDep} → ${cityArr} ${tag}`;
+          if (arrLatLng) bounds.extend(arrLatLng);
 
-            if (typeof r.distance_km === "number") totalKm += r.distance_km;
+          // -------- STAY --------
+          if (kind === "stay" || !r.departure) {
+            if (!arrLatLng) return;
 
-            // Line
-            const curve = interpolateCurve(dep, arr, 48);
-            L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(transportLayer);
+            const city = cityOnly(r.arrival_label, "City");
+            const arrD = formatDateFr(r.arrival_date);
+            const depD = formatDateFr(r.departure_date);
+            const nights = nightsBetween(r.arrival_date, r.departure_date);
+            const nightsTxt = (nights !== null) ? `${nights} nuit(s)` : null;
 
-            // Markers
             const popup = `
               <div style="font-family: ui-sans-serif, system-ui;">
-                <div style="font-weight:800;">${title}</div>
-                <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
-                <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
-                ${typeof r.distance_km === "number" ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>` : ``}
+                <div style="font-weight:900;">${city}</div>
+                <div style="margin-top:6px;opacity:.8;">${ttype}</div>
+                <div style="margin-top:6px;"><b>Arrivée:</b> ${arrD}</div>
+                <div style="margin-top:4px;"><b>Départ:</b> ${depD}</div>
+                ${nightsTxt ? `<div style="margin-top:6px;opacity:.8;">Durée: ${nightsTxt}</div>` : ``}
               </div>
             `;
 
-            markerCluster.addLayer(L.marker(dep, { icon: depIcon }).bindPopup(popup));
-            markerCluster.addLayer(L.marker(arr, { icon: arrIcon }).bindPopup(popup));
+            const marker = L.marker(arrLatLng, { icon: arrIcon }).bindPopup(popup);
+            markerCluster.addLayer(marker);
+
+            const id = `stay-${idx}`;
+            cardTargets.set(id, {
+              bounds: L.latLngBounds([arrLatLng]),
+              open: () => marker.openPopup()
+            });
+
+            // Card
+            const card = document.createElement("div");
+            card.className = "card blue";
+            card.innerHTML = `
+              <div class="title">${city}</div>
+              <div class="meta">
+                <span class="badge">${ttype}</span>
+                <span class="badge">${arrD} → ${depD}${nightsTxt ? ` • ${nightsTxt}` : ""}</span>
+              </div>
+            `;
+            card.addEventListener("click", () => {
+              const target = cardTargets.get(id);
+              if (!target) return;
+              map.fitBounds(target.bounds.pad(0.6));
+              // open popup a tick later so cluster expands if needed
+              setTimeout(() => target.open(), 200);
+            });
+            document.getElementById("stayList").appendChild(card);
+            return;
           }
+
+          // -------- TRANSPORT --------
+          if (!Array.isArray(r.departure) || r.departure.length !== 2 || !arrLatLng) return;
+
+          const depLatLng = L.latLng(r.departure[0], r.departure[1]);
+          bounds.extend(depLatLng);
+
+          const depCity = cityOnly(r.departure_label, "Departure");
+          const arrCity = cityOnly(r.arrival_label, "Arrival");
+
+          const title = `${depCity} → ${arrCity}`;
+          const dLabel = dateLabel(r.departure_date, r.arrival_date);
+
+          if (typeof r.distance_km === "number") totalKm += r.distance_km;
+
+          // Line
+          const curve = interpolateCurve(depLatLng, arrLatLng, 48);
+          L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(transportLayer);
+
+          const distLine = (typeof r.distance_km === "number")
+            ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>`
+            : "";
+
+          // Popup: if no arrival_date, we show only Date
+          const depD = formatDateFr(r.departure_date);
+          const arrD = formatDateFr(r.arrival_date);
+          const dateBlock = (!r.arrival_date)
+            ? `<div style="margin-top:6px;"><b>Date:</b> ${depD}</div>`
+            : `<div style="margin-top:6px;"><b>Départ:</b> ${depD}</div><div style="margin-top:4px;"><b>Arrivée:</b> ${arrD}</div>`;
+
+          const popup = `
+            <div style="font-family: ui-sans-serif, system-ui;">
+              <div style="font-weight:900;">${title}</div>
+              <div style="margin-top:6px;opacity:.8;">${ttype}</div>
+              ${dateBlock}
+              ${distLine}
+            </div>
+          `;
+
+          const mDep = L.marker(depLatLng, { icon: depIcon }).bindPopup(popup);
+          const mArr = L.marker(arrLatLng, { icon: arrIcon }).bindPopup(popup);
+          markerCluster.addLayer(mDep);
+          markerCluster.addLayer(mArr);
+
+          const id = `trip-${idx}`;
+          cardTargets.set(id, {
+            bounds: L.latLngBounds([depLatLng, arrLatLng]),
+            open: () => mArr.openPopup()
+          });
+
+          // Card color: alternating for readability
+          const colorClass = (transportIndex % 2 === 0) ? "green" : "red";
+          transportIndex += 1;
+
+          const card = document.createElement("div");
+          card.className = `card ${colorClass}`;
+          card.innerHTML = `
+            <div class="title">${title}</div>
+            <div class="meta">
+              <span class="badge">${ttype}</span>
+              <span class="badge">${dLabel}</span>
+              ${typeof r.distance_km === "number" ? `<span class="badge">${Math.round(r.distance_km).toLocaleString("fr-FR")} km</span>` : ``}
+            </div>
+          `;
+          card.addEventListener("click", () => {
+            const target = cardTargets.get(id);
+            if (!target) return;
+            map.fitBounds(target.bounds.pad(0.5));
+            setTimeout(() => target.open(), 200);
+          });
+          document.getElementById("tripList").appendChild(card);
         });
 
         // KPIs
-        document.getElementById("kpiTrips").textContent = records.length.toLocaleString("fr-FR");
+        document.getElementById("kpiItems").textContent = sorted.length.toLocaleString("fr-FR");
         document.getElementById("kpiDistance").textContent = totalKm > 0 ? formatKm(totalKm) : "—";
 
-        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
-      }
+        // "Last updated" (best effort: now, since GH Pages doesn't expose file mtime easily)
+        document.getElementById("lastUpdated").textContent = "maj: " + new Date().toLocaleDateString("fr-FR");
 
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
+
+        if (sorted.length === 0) {
+          L.popup().setLatLng([20, 0]).setContent("Aucun item à afficher (cities.json est vide).").openOn(map);
+          document.getElementById("kpiItems").textContent = "0";
+          document.getElementById("kpiDistance").textContent = "0 km";
+        }
+      }
 
       (async () => {
         try {
-          const records = await loadTrips();
-          addTripsToMap(records);
-
-          if (records.length === 0) {
-            L.popup()
-              .setLatLng([20, 0])
-              .setContent("Aucun trajet à afficher (cities.json est vide).")
-              .openOn(map);
-            document.getElementById("kpiTrips").textContent = "0";
-            document.getElementById("kpiDistance").textContent = "0 km";
-          }
+          const records = await loadRecords();
+          render(records);
         } catch (e) {
           console.error(e);
-          L.popup()
-            .setLatLng([20, 0])
-            .setContent(`Erreur: ${e.message}`)
-            .openOn(map);
+          L.popup().setLatLng([20, 0]).setContent(`Erreur: ${e.message}`).openOn(map);
         }
       })();
     </script>
