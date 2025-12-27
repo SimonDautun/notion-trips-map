@@ -82,5 +82,19 @@
     "departure_label": "昆明市, 云南省, 中国",
     "arrival_label": "Shangai, 上海市, 中国",
     "distance_km": 1961.14
+  },
+  {
+    "name": "[Transport] - KMG →  LJG",
+    "departure": [
+      26.8595868,
+      100.2249797
+    ],
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "departure_label": "丽江市, 云南省, 中国",
+    "arrival_label": "昆明市, 云南省, 中国",
+    "distance_km": 320.56
   }
 ]
