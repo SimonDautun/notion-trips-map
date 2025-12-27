@@ -1,0 +1,68 @@
+[
+  {
+    "name": "[Transport] - BJG → SHG",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival": [
+      40.190632,
+      116.412144
+    ]
+  },
+  {
+    "name": "[Transport] - HKG → BJG",
+    "departure": [
+      40.190632,
+      116.412144
+    ],
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ]
+  },
+  {
+    "name": "[Transport] - KMG → HKG",
+    "departure": [
+      22.2792968,
+      114.1628907
+    ],
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ]
+  },
+  {
+    "name": "[Transport] - HKG → SHG",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival": [
+      22.2792968,
+      114.1628907
+    ]
+  },
+  {
+    "name": "[Transport] - SHL → KMG",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival": [
+      27.8717021,
+      99.8365499
+    ]
+  },
+  {
+    "name": "[Transport] - SHG → KMG",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ]
+  }
+]
