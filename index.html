@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Notion Trips Map</title>
+
+    <!-- Leaflet (carto open-source) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #map { height: 100vh; width: 100vw; }
+      .badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 999px;
+        font-size: 12px;
+        line-height: 1.3;
+        margin-right: 6px;
+      }
+      .dep { background: #ffe5e5; }
+      .arr { background: #e6ffea; }
+      .small { opacity: 0.8; font-size: 12px; }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+
+    <script>
+      // Carte
+      const map = L.map("map", { worldCopyJump: true }).setView([20, 0], 2);
+
+      // Fond OpenStreetMap
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+        maxZoom: 19
+      }).addTo(map);
+
+      // Icônes simples (couleurs différentes)
+      const depIcon = new L.Icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      const arrIcon = new L.Icon({
+        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      function isValidLatLon(x) {
+        return Array.isArray(x) && x.length === 2 &&
+          typeof x[0] === "number" && typeof x[1] === "number" &&
+          isFinite(x[0]) && isFinite(x[1]);
+      }
+
+      async function loadTrips() {
+        const res = await fetch("./cities.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`Impossible de charger cities.json (${res.status})`);
+        const trips = await res.json();
+        return Array.isArray(trips) ? trips : [];
+      }
+
+      function addTripsToMap(trips) {
+        const bounds = L.latLngBounds([]);
+
+        trips.forEach((t, i) => {
+          const name = t.name || `Trip ${i + 1}`;
+          const dep = t.departure;
+          const arr = t.arrival;
+
+          if (!isValidLatLon(dep) || !isValidLatLon(arr)) return;
+
+          const depLatLng = L.latLng(dep[0], dep[1]);
+          const arrLatLng = L.latLng(arr[0], arr[1]);
+
+          // Markers
+          const depMarker = L.marker(depLatLng, { icon: depIcon }).addTo(map);
+          const arrMarker = L.marker(arrLatLng, { icon: arrIcon }).addTo(map);
+
+          depMarker.bindPopup(`
+            <div><span class="badge dep">Departure</span><strong>${name}</strong></div>
+            <div class="small">${depLatLng.lat.toFixed(4)}, ${depLatLng.lng.toFixed(4)}</div>
+          `);
+
+          arrMarker.bindPopup(`
+            <div><span class="badge arr">Arrival</span><strong>${name}</strong></div>
+            <div class="small">${arrLatLng.lat.toFixed(4)}, ${arrLatLng.lng.toFixed(4)}</div>
+          `);
+
+          // Line
+          L.polyline([depLatLng, arrLatLng], { weight: 2, opacity: 0.8 }).addTo(map);
+
+          bounds.extend(depLatLng);
+          bounds.extend(arrLatLng);
+        });
+
+        // Zoom auto
+        if (bounds.isValid()) {
+          map.fitBounds(bounds.pad(0.2));
+        }
+      }
+
+      (async () => {
+        try {
+          const trips = await loadTrips();
+          addTripsToMap(trips);
+
+          if (trips.length === 0) {
+            L.popup()
+              .setLatLng([20, 0])
+              .setContent("Aucun trajet à afficher (cities.json est vide).")
+              .openOn(map);
+          }
+        } catch (e) {
+          console.error(e);
+          L.popup()
+            .setLatLng([20, 0])
+            .setContent(`Erreur: ${e.message}`)
+            .openOn(map);
+        }
+      })();
+    </script>
+  </body>
+</html>

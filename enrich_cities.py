@@ -1,5 +1,7 @@
 import os
 import time
+import json
+import re
 import requests
 from dotenv import load_dotenv
 
@@ -8,7 +10,6 @@ load_dotenv()
 NOTION_TOKEN = os.environ["NOTION_TOKEN"]
 NOTION_DATABASE_ID = os.environ["NOTION_DATABASE_ID"]
 
-# Obligatoire pour Nominatim public (mets un vrai contact)
 NOMINATIM_USER_AGENT = os.environ.get(
     "NOMINATIM_USER_AGENT",
     "NotionCityEnricher/1.0 (contact: you@example.com)"
@@ -32,12 +33,16 @@ def extract_rich_text(page, prop_name: str) -> str | None:
     text = "".join([p.get("plain_text", "") for p in parts]).strip()
     return text or None
 
+def extract_title(page, prop_name: str) -> str | None:
+    prop = page["properties"].get(prop_name)
+    if not prop or prop.get("type") != "title":
+        return None
+    parts = prop["title"]
+    text = "".join([p.get("plain_text", "") for p in parts]).strip()
+    return text or None
+
 def set_rich_text(page_id: str, prop_name: str, value: str):
-    payload = {
-        "properties": {
-            prop_name: {"rich_text": [{"text": {"content": value}}]}
-        }
-    }
+    payload = {"properties": {prop_name: {"rich_text": [{"text": {"content": value}}]}}}
     r = notion.patch(f"{NOTION_API_BASE}/pages/{page_id}", json=payload, timeout=30)
     if r.status_code >= 400:
         print("Update error:", r.status_code, r.text)
@@ -62,16 +67,10 @@ def nominatim_geocode(query: str):
     lon = item.get("lon")
     return city, region, country, lat, lon
 
-def query_needing_details(source_prop: str, details_prop: str, start_cursor=None):
-    payload = {
-        "page_size": 50,
-        "filter": {
-            "and": [
-                {"property": source_prop, "rich_text": {"is_not_empty": True}},
-                {"property": details_prop, "rich_text": {"is_empty": True}},
-            ]
-        }
-    }
+def query_pages(filter_payload=None, start_cursor=None, page_size=50):
+    payload = {"page_size": page_size}
+    if filter_payload:
+        payload["filter"] = filter_payload
     if start_cursor:
         payload["start_cursor"] = start_cursor
 
@@ -81,7 +80,16 @@ def query_needing_details(source_prop: str, details_prop: str, start_cursor=None
     r.raise_for_status()
     return r.json()
 
-def process(source_prop: str, details_prop: str):
+def query_needing_details(source_prop: str, details_prop: str, start_cursor=None):
+    filter_payload = {
+        "and": [
+            {"property": source_prop, "rich_text": {"is_not_empty": True}},
+            {"property": details_prop, "rich_text": {"is_empty": True}},
+        ]
+    }
+    return query_pages(filter_payload=filter_payload, start_cursor=start_cursor)
+
+def enrich_details(source_prop: str, details_prop: str):
     cursor = None
     updated = 0
 
@@ -111,10 +119,74 @@ def process(source_prop: str, details_prop: str):
 
     return updated
 
+_latlon_re = re.compile(r"—\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*$")
+
+def parse_details_latlon(details: str):
+    """
+    Ex: 'Paris, Île-de-France, France — 48.8566, 2.3522'
+    -> (48.8566, 2.3522)
+    """
+    if not details:
+        return None
+    m = _latlon_re.search(details)
+    if not m:
+        return None
+    return float(m.group(1)), float(m.group(2))
+
+def export_cities_json(filepath="cities.json"):
+    """
+    Export all rows that have BOTH Arrival details and Departure details.
+    Output format:
+    [
+      {"name": "...", "departure": [lat, lon], "arrival": [lat, lon]}
+    ]
+    """
+    trips = []
+    cursor = None
+
+    filter_payload = {
+        "and": [
+            {"property": "Arrival details", "rich_text": {"is_not_empty": True}},
+            {"property": "Departure details", "rich_text": {"is_not_empty": True}},
+        ]
+    }
+
+    while True:
+        res = query_pages(filter_payload=filter_payload, start_cursor=cursor)
+        for page in res.get("results", []):
+            name = extract_title(page, "Name") or "Trip"
+            arr_details = extract_rich_text(page, "Arrival details") or ""
+            dep_details = extract_rich_text(page, "Departure details") or ""
+
+            arr = parse_details_latlon(arr_details)
+            dep = parse_details_latlon(dep_details)
+
+            # Ignore rows where details exist but lat/lon parsing fails (e.g. "Not found")
+            if not arr or not dep:
+                continue
+
+            trips.append({
+                "name": name,
+                "departure": [dep[0], dep[1]],
+                "arrival": [arr[0], arr[1]],
+            })
+
+        if not res.get("has_more"):
+            break
+        cursor = res.get("next_cursor")
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(trips, f, ensure_ascii=False, indent=2)
+
+    print(f"Exported {len(trips)} trip(s) to {filepath}")
+
 def main():
-    a = process("Arrival", "Arrival details")
-    d = process("Departure", "Departure details")
+    a = enrich_details("Arrival", "Arrival details")
+    d = enrich_details("Departure", "Departure details")
     print(f"Done. Updated Arrival={a}, Departure={d}")
+
+    # Always export a file (even if empty) so GitHub Actions can commit it.
+    export_cities_json("cities.json")
 
 if __name__ == "__main__":
     main()

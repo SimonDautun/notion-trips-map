@@ -32,6 +32,15 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add cities.json
-          git commit -m "Update cities.json" || echo "No changes"
-          git push
+
+          ls -la
+
+          if [ -f "cities.json" ]; then
+            git add cities.json
+            git commit -m "Update cities.json" || echo "No changes"
+            git push
+          else
+            echo "cities.json not found — skipping commit."
+            exit 0
+          fi
+
