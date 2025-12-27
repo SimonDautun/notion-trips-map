@@ -1,4 +1,4 @@
-name: Update trips.json from Notion
+name: Update cities.json from Notion
 
 on:
   workflow_dispatch: {}
@@ -21,8 +21,8 @@ jobs:
       - name: Install deps
         run: pip install requests python-dotenv
 
-      - name: Export trips
-        run: python export_trips.py
+      - name: Export cities
+        run: python enrich_cities.py
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
@@ -32,6 +32,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add trips.json
-          git commit -m "Update trips.json" || echo "No changes"
+          git add cities.json
+          git commit -m "Update cities.json" || echo "No changes"
           git push
