@@ -8,7 +8,10 @@
     "arrival": [
       40.190632,
       116.412144
-    ]
+    ],
+    "departure_label": "Shanghaï, 上海市, 中国",
+    "arrival_label": "Beijing, 北京市, 中国",
+    "distance_km": 1095.4
   },
   {
     "name": "[Transport] - HKG → BJG",
@@ -19,7 +22,10 @@
     "arrival": [
       31.2312707,
       121.4700152
-    ]
+    ],
+    "departure_label": "Beijing, 北京市, 中国",
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "distance_km": 1095.4
   },
   {
     "name": "[Transport] - KMG → HKG",
@@ -30,7 +36,10 @@
     "arrival": [
       25.0363006,
       102.7086139
-    ]
+    ],
+    "departure_label": "香港 Hong Kong, 中国",
+    "arrival_label": "昆明市, 云南省, 中国",
+    "distance_km": 1205.75
   },
   {
     "name": "[Transport] - HKG → SHG",
@@ -41,7 +50,10 @@
     "arrival": [
       22.2792968,
       114.1628907
-    ]
+    ],
+    "departure_label": "Shanghaï, 上海市, 中国",
+    "arrival_label": "香港 Hong Kong, 中国",
+    "distance_km": 1230.94
   },
   {
     "name": "[Transport] - SHL → KMG",
@@ -52,7 +64,10 @@
     "arrival": [
       27.8717021,
       99.8365499
-    ]
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "arrival_label": "Shangri-La, 云南省, 中国",
+    "distance_km": 425.58
   },
   {
     "name": "[Transport] - SHG → KMG",
@@ -63,6 +78,9 @@
     "arrival": [
       31.2312707,
       121.4700152
-    ]
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "arrival_label": "Shangai, 上海市, 中国",
+    "distance_km": 1961.14
   }
 ]
