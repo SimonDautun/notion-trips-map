@@ -4,6 +4,7 @@ import json
 import re
 import requests
 from dotenv import load_dotenv
+import math
 
 load_dotenv()
 
@@ -133,12 +134,51 @@ def parse_details_latlon(details: str):
         return None
     return float(m.group(1)), float(m.group(2))
 
+_latlon_re = re.compile(r"—\s*([-0-9.]+)\s*,\s*([-0-9.]+)\s*$")
+
+def parse_details(details: str):
+    """
+    Ex: 'Paris, Île-de-France, France — 48.8566, 2.3522'
+    -> {"label":"Paris, Île-de-France, France", "lat":48.8566, "lon":2.3522}
+    """
+    if not details or details.strip().lower() == "not found":
+        return None
+
+    m = _latlon_re.search(details)
+    if not m:
+        return None
+
+    lat = float(m.group(1))
+    lon = float(m.group(2))
+
+    label = details.split("—")[0].strip()
+    return {"label": label, "lat": lat, "lon": lon}
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    # Rayon moyen de la Terre en km
+    R = 6371.0
+    p1 = math.radians(lat1)
+    p2 = math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlmb = math.radians(lon2 - lon1)
+
+    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlmb / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
 def export_cities_json(filepath="cities.json"):
     """
     Export all rows that have BOTH Arrival details and Departure details.
     Output format:
     [
-      {"name": "...", "departure": [lat, lon], "arrival": [lat, lon]}
+      {
+        "name": "Trip name",
+        "departure": [lat, lon],
+        "arrival": [lat, lon],
+        "departure_label": "Paris, Île-de-France, France",
+        "arrival_label": "Rome, Lazio, Italy",
+        "distance_km": 1105.42
+      }
     ]
     """
     trips = []
@@ -153,22 +193,27 @@ def export_cities_json(filepath="cities.json"):
 
     while True:
         res = query_pages(filter_payload=filter_payload, start_cursor=cursor)
+
         for page in res.get("results", []):
             name = extract_title(page, "Name") or "Trip"
+
             arr_details = extract_rich_text(page, "Arrival details") or ""
             dep_details = extract_rich_text(page, "Departure details") or ""
 
-            arr = parse_details_latlon(arr_details)
-            dep = parse_details_latlon(dep_details)
-
-            # Ignore rows where details exist but lat/lon parsing fails (e.g. "Not found")
+            arr = parse_details(arr_details)
+            dep = parse_details(dep_details)
             if not arr or not dep:
                 continue
 
+            dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
+
             trips.append({
                 "name": name,
-                "departure": [dep[0], dep[1]],
-                "arrival": [arr[0], arr[1]],
+                "departure": [dep["lat"], dep["lon"]],
+                "arrival": [arr["lat"], arr["lon"]],
+                "departure_label": dep["label"],
+                "arrival_label": arr["label"],
+                "distance_km": round(dist, 2),
             })
 
         if not res.get("has_more"):

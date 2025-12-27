@@ -5,50 +5,94 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Notion Trips Map</title>
 
-    <!-- Leaflet (carto open-source) -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""
-    ></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
     <style>
       html, body { height: 100%; margin: 0; }
       #map { height: 100vh; width: 100vw; }
-      .badge {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 999px;
-        font-size: 12px;
-        line-height: 1.3;
-        margin-right: 6px;
+
+      /* Overlay: stats + legend */
+      .overlay {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 9999;
+        background: rgba(255,255,255,0.92);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        max-width: 320px;
       }
-      .dep { background: #ffe5e5; }
-      .arr { background: #e6ffea; }
-      .small { opacity: 0.8; font-size: 12px; }
+      .overlay h1 {
+        font-size: 14px;
+        margin: 0 0 8px;
+        font-weight: 700;
+      }
+      .kpis { display: flex; gap: 10px; margin-bottom: 8px; }
+      .kpi {
+        flex: 1;
+        background: rgba(0,0,0,0.04);
+        border-radius: 10px;
+        padding: 8px;
+      }
+      .kpi .label { font-size: 12px; opacity: 0.7; }
+      .kpi .value { font-size: 16px; font-weight: 800; margin-top: 2px; }
+
+      .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+      .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.85; }
+      .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+      .dot.dep { background: #d33; }
+      .dot.arr { background: #2a9d4b; }
+      .line { width: 18px; height: 2px; background: #2b6cb0; border-radius: 2px; display: inline-block; }
+
+      /* Animated polylines (SVG) */
+      .flight-path {
+        stroke-dasharray: 8 10;
+        animation: dash 2.2s linear infinite;
+      }
+      @keyframes dash {
+        to { stroke-dashoffset: -18; }
+      }
     </style>
   </head>
 
   <body>
     <div id="map"></div>
 
+    <div class="overlay">
+      <h1>Trips</h1>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">Trajets</div>
+          <div class="value" id="kpiTrips">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Distance totale</div>
+          <div class="value" id="kpiDistance">—</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot dep"></span>Departure</div>
+        <div class="legend-item"><span class="dot arr"></span>Arrival</div>
+        <div class="legend-item"><span class="line"></span>Trajet</div>
+      </div>
+    </div>
+
     <script>
-      // Carte
       const map = L.map("map", { worldCopyJump: true }).setView([20, 0], 2);
 
-      // Fond OpenStreetMap
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19
       }).addTo(map);
 
-      // Icônes simples (couleurs différentes)
+      // Simple colored markers
       const depIcon = new L.Icon({
         iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -73,6 +117,57 @@
           isFinite(x[0]) && isFinite(x[1]);
       }
 
+      function formatKm(km) {
+        // format FR avec séparateur de milliers
+        return Math.round(km).toLocaleString("fr-FR") + " km";
+      }
+
+      // Great-circle-ish curve interpolation (lightweight)
+      function interpolateCurve(a, b, steps = 40) {
+        const lat1 = a.lat * Math.PI / 180, lon1 = a.lng * Math.PI / 180;
+        const lat2 = b.lat * Math.PI / 180, lon2 = b.lng * Math.PI / 180;
+
+        // Convert to cartesian
+        function toXYZ(lat, lon) {
+          return {
+            x: Math.cos(lat) * Math.cos(lon),
+            y: Math.cos(lat) * Math.sin(lon),
+            z: Math.sin(lat)
+          };
+        }
+        const A = toXYZ(lat1, lon1);
+        const B = toXYZ(lat2, lon2);
+
+        // Angle between vectors
+        const dot = A.x*B.x + A.y*B.y + A.z*B.z;
+        const omega = Math.acos(Math.min(1, Math.max(-1, dot)));
+
+        // If points are identical or nearly so
+        if (!isFinite(omega) || omega < 1e-6) {
+          return [a, b];
+        }
+
+        const sinOmega = Math.sin(omega);
+        const points = [];
+
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const s1 = Math.sin((1 - t) * omega) / sinOmega;
+          const s2 = Math.sin(t * omega) / sinOmega;
+
+          const x = s1*A.x + s2*B.x;
+          const y = s1*A.y + s2*B.y;
+          const z = s1*A.z + s2*B.z;
+
+          // back to lat/lon
+          const lat = Math.atan2(z, Math.sqrt(x*x + y*y)) * 180 / Math.PI;
+          const lon = Math.atan2(y, x) * 180 / Math.PI;
+          points.push(L.latLng(lat, lon));
+        }
+
+        return points;
+      }
+
       async function loadTrips() {
         const res = await fetch("./cities.json", { cache: "no-store" });
         if (!res.ok) throw new Error(`Impossible de charger cities.json (${res.status})`);
@@ -82,6 +177,7 @@
 
       function addTripsToMap(trips) {
         const bounds = L.latLngBounds([]);
+        let totalKm = 0;
 
         trips.forEach((t, i) => {
           const name = t.name || `Trip ${i + 1}`;
@@ -93,28 +189,46 @@
           const depLatLng = L.latLng(dep[0], dep[1]);
           const arrLatLng = L.latLng(arr[0], arr[1]);
 
-          // Markers
-          const depMarker = L.marker(depLatLng, { icon: depIcon }).addTo(map);
-          const arrMarker = L.marker(arrLatLng, { icon: arrIcon }).addTo(map);
+          // Labels (fallback)
+          const depLabel = t.departure_label || "Departure";
+          const arrLabel = t.arrival_label || "Arrival";
 
-          depMarker.bindPopup(`
-            <div><span class="badge dep">Departure</span><strong>${name}</strong></div>
-            <div class="small">${depLatLng.lat.toFixed(4)}, ${depLatLng.lng.toFixed(4)}</div>
+          // Distance (fallback: compute rough if absent)
+          const distKm = typeof t.distance_km === "number" ? t.distance_km : null;
+          if (distKm !== null) totalKm += distKm;
+
+          // Markers + popups
+          L.marker(depLatLng, { icon: depIcon }).addTo(map).bindPopup(`
+            <div style="font-family: ui-sans-serif, system-ui;">
+              <div style="font-weight:800;">${name}</div>
+              <div style="margin-top:6px;"><b>Departure:</b> ${depLabel}</div>
+              <div style="margin-top:4px;"><b>Arrival:</b> ${arrLabel}</div>
+              ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
+            </div>
           `);
 
-          arrMarker.bindPopup(`
-            <div><span class="badge arr">Arrival</span><strong>${name}</strong></div>
-            <div class="small">${arrLatLng.lat.toFixed(4)}, ${arrLatLng.lng.toFixed(4)}</div>
+          L.marker(arrLatLng, { icon: arrIcon }).addTo(map).bindPopup(`
+            <div style="font-family: ui-sans-serif, system-ui;">
+              <div style="font-weight:800;">${name}</div>
+              <div style="margin-top:6px;"><b>Arrival:</b> ${arrLabel}</div>
+              <div style="margin-top:4px;"><b>Departure:</b> ${depLabel}</div>
+              ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
+            </div>
           `);
 
-          // Line
-          L.polyline([depLatLng, arrLatLng], { weight: 2, opacity: 0.8 }).addTo(map);
+          // Curved line + animation
+          const curve = interpolateCurve(depLatLng, arrLatLng, 48);
+          const path = L.polyline(curve, { weight: 2, opacity: 0.85, className: "flight-path" }).addTo(map);
 
           bounds.extend(depLatLng);
           bounds.extend(arrLatLng);
         });
 
-        // Zoom auto
+        // Update KPIs
+        document.getElementById("kpiTrips").textContent = trips.length.toLocaleString("fr-FR");
+        document.getElementById("kpiDistance").textContent = totalKm > 0 ? formatKm(totalKm) : "—";
+
+        // Fit bounds
         if (bounds.isValid()) {
           map.fitBounds(bounds.pad(0.2));
         }
@@ -130,6 +244,8 @@
               .setLatLng([20, 0])
               .setContent("Aucun trajet à afficher (cities.json est vide).")
               .openOn(map);
+            document.getElementById("kpiTrips").textContent = "0";
+            document.getElementById("kpiDistance").textContent = "0 km";
           }
         } catch (e) {
           console.error(e);
