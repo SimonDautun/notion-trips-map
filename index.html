@@ -122,6 +122,13 @@
         return Math.round(km).toLocaleString("fr-FR") + " km";
       }
 
+      function formatDateFr(iso) {
+        if (!iso) return "—";
+        if (iso.length === 10) return iso.split("-").reverse().join("/");
+        return new Date(iso).toLocaleDateString("fr-FR");
+      }
+
+
       // Great-circle-ish curve interpolation (lightweight)
       function interpolateCurve(a, b, steps = 40) {
         const lat1 = a.lat * Math.PI / 180, lon1 = a.lng * Math.PI / 180;
@@ -180,7 +187,6 @@
         let totalKm = 0;
 
         trips.forEach((t, i) => {
-          const name = t.name || `Trip ${i + 1}`;
           const dep = t.departure;
           const arr = t.arrival;
 
@@ -192,6 +198,9 @@
           // Labels (fallback)
           const depLabel = t.departure_label || "Departure";
           const arrLabel = t.arrival_label || "Arrival";
+          const arrLabelCity = (arrLabel.split(",")[0] || arrLabel).trim();
+          const depDate = formatDateFr(t.departure_date);
+          const arrDate = formatDateFr(t.arrival_date);
 
           // Distance (fallback: compute rough if absent)
           const distKm = typeof t.distance_km === "number" ? t.distance_km : null;
@@ -200,18 +209,18 @@
           // Markers + popups
           L.marker(depLatLng, { icon: depIcon }).addTo(map).bindPopup(`
             <div style="font-family: ui-sans-serif, system-ui;">
-              <div style="font-weight:800;">${name}</div>
-              <div style="margin-top:6px;"><b>Departure:</b> ${depLabel}</div>
-              <div style="margin-top:4px;"><b>Arrival:</b> ${arrLabel}</div>
+              <div style="font-weight:800;">${arrLabelCity}</div>
+              <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
+              <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
               ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
             </div>
           `);
 
           L.marker(arrLatLng, { icon: arrIcon }).addTo(map).bindPopup(`
             <div style="font-family: ui-sans-serif, system-ui;">
-              <div style="font-weight:800;">${name}</div>
-              <div style="margin-top:6px;"><b>Arrival:</b> ${arrLabel}</div>
-              <div style="margin-top:4px;"><b>Departure:</b> ${depLabel}</div>
+              <div style="font-weight:800;">${arrLabelCity}</div>
+              <div style="margin-top:6px;"><b>Departure:</b> ${depDate}</div>
+              <div style="margin-top:4px;"><b>Arrival:</b> ${arrDate}</div>
               ${distKm !== null ? `<div style="margin-top:6px;opacity:.8;">Distance: ${distKm.toLocaleString("fr-FR")} km</div>` : ``}
             </div>
           `);

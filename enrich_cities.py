@@ -26,6 +26,13 @@ notion.headers.update({
     "Content-Type": "application/json",
 })
 
+def extract_date_range(page, prop_name: str):
+    prop = page["properties"].get(prop_name)
+    if not prop or prop.get("type") != "date" or not prop.get("date"):
+        return (None, None)
+    d = prop["date"]
+    return (d.get("start"), d.get("end"))  # ISO strings
+
 def extract_rich_text(page, prop_name: str) -> str | None:
     prop = page["properties"].get(prop_name)
     if not prop or prop.get("type") != "rich_text":
@@ -169,6 +176,7 @@ def haversine_km(lat1, lon1, lat2, lon2):
 def export_cities_json(filepath="cities.json"):
     """
     Export all rows that have BOTH Arrival details and Departure details.
+
     Output format:
     [
       {
@@ -177,7 +185,9 @@ def export_cities_json(filepath="cities.json"):
         "arrival": [lat, lon],
         "departure_label": "Paris, Île-de-France, France",
         "arrival_label": "Rome, Lazio, Italy",
-        "distance_km": 1105.42
+        "distance_km": 1105.42,
+        "departure_date": "2025-12-01",
+        "arrival_date": "2025-12-10"
       }
     ]
     """
@@ -196,6 +206,7 @@ def export_cities_json(filepath="cities.json"):
 
         for page in res.get("results", []):
             name = extract_title(page, "Name") or "Trip"
+            dep_date, arr_date = extract_date_range(page, "Date")  # start=departure, end=arrival
 
             arr_details = extract_rich_text(page, "Arrival details") or ""
             dep_details = extract_rich_text(page, "Departure details") or ""
@@ -214,6 +225,8 @@ def export_cities_json(filepath="cities.json"):
                 "departure_label": dep["label"],
                 "arrival_label": arr["label"],
                 "distance_km": round(dist, 2),
+                "departure_date": dep_date,
+                "arrival_date": arr_date,
             })
 
         if not res.get("has_more"):

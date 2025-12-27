@@ -11,7 +11,9 @@
     ],
     "departure_label": "Shanghaï, 上海市, 中国",
     "arrival_label": "Beijing, 北京市, 中国",
-    "distance_km": 1095.4
+    "distance_km": 1095.4,
+    "departure_date": "2026-01-20",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - HKG → BJG",
@@ -25,7 +27,9 @@
     ],
     "departure_label": "Beijing, 北京市, 中国",
     "arrival_label": "Shanghaï, 上海市, 中国",
-    "distance_km": 1095.4
+    "distance_km": 1095.4,
+    "departure_date": "2026-01-18",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - KMG → HKG",
@@ -39,7 +43,9 @@
     ],
     "departure_label": "香港 Hong Kong, 中国",
     "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 1205.75
+    "distance_km": 1205.75,
+    "departure_date": "2026-01-11",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - HKG → SHG",
@@ -53,7 +59,9 @@
     ],
     "departure_label": "Shanghaï, 上海市, 中国",
     "arrival_label": "香港 Hong Kong, 中国",
-    "distance_km": 1230.94
+    "distance_km": 1230.94,
+    "departure_date": "2026-01-14",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - SHL → KMG",
@@ -67,7 +75,9 @@
     ],
     "departure_label": "昆明市, 云南省, 中国",
     "arrival_label": "Shangri-La, 云南省, 中国",
-    "distance_km": 425.58
+    "distance_km": 425.58,
+    "departure_date": "2026-01-10",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - SHG → KMG",
@@ -81,7 +91,9 @@
     ],
     "departure_label": "昆明市, 云南省, 中国",
     "arrival_label": "Shangai, 上海市, 中国",
-    "distance_km": 1961.14
+    "distance_km": 1961.14,
+    "departure_date": "2026-01-02",
+    "arrival_date": null
   },
   {
     "name": "[Transport] - KMG →  LJG",
@@ -95,6 +107,8 @@
     ],
     "departure_label": "丽江市, 云南省, 中国",
     "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 320.56
+    "distance_km": 320.56,
+    "departure_date": "2026-01-03",
+    "arrival_date": null
   }
 ]
