@@ -15,5 +15,5 @@ window.APP_CONFIG = {
     maxWidth: 640
   },
   // data
-  dataUrl: "/cities.json"
+  dataUrl: "cities.json"
 };

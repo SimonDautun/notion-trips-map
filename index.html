@@ -17,16 +17,12 @@
   <!-- Polyline decorator (arrows) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.6.0/leaflet.polylineDecorator.min.js"></script>
 
-  <!-- App CSS -->
-  <link rel="stylesheet" href="/assets/css/styles.css" />
-</head>
+  <!-- App CSS (✅ bon nom + relatif) -->
+  <link rel="stylesheet" href="assets/css/style.css" />
 
-  <!-- App JS -->
-<script src="/assets/js/config.js"></script>
-<script src="/assets/js/utils.js"></script>
-<script src="/assets/js/ui.js"></script>
-<script src="/assets/js/map.js"></script>
-<script src="/assets/js/app.js"></script>
+  <!-- optionnel: supprime le 404 favicon -->
+  <link rel="icon" href="data:,">
+</head>
 
 <body>
   <div id="map"></div>
@@ -65,5 +61,12 @@
       </div>
     </div>
   </div>
+
+  <!-- App JS -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/map.js"></script>
+  <script src="assets/js/app.js"></script>
 </body>
 </html>
