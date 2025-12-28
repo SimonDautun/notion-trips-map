@@ -1,61 +1,51 @@
-window.TripsMap = (function () {
-  let map, cityLayer, transportLayer, cityIcon, zonesLayer;
+/* assets/js/map.js */
+/* global L, APP_CONFIG, Utils */
 
-  function init() {
-    const cfg = window.APP_CONFIG;
+window.TripsMap = (() => {
+  const state = {
+    map: null,
 
-    map = L.map("map", { worldCopyJump: true }).setView(cfg.initialView.center, cfg.initialView.zoom);
+    // layers
+    citiesLayer: null,      // MarkerClusterGroup
+    transportLayer: null,   // LayerGroup
+    zonesLayer: null,       // GeoJSON layer (persistent)
 
-    L.tileLayer(cfg.tiles.url, {
-      maxZoom: cfg.tiles.maxZoom,
-      attribution: cfg.tiles.attribution
-    }).addTo(map);
+    // icons
+    cityIcon: null
+  };
 
-    // IMPORTANT: tu ne voulais plus de regroupement visuel => layer simple (pas MarkerCluster)
-    cityLayer = L.layerGroup().addTo(map);
-    transportLayer = L.layerGroup().addTo(map);
-    zonesLayer = L.layerGroup().addTo(map);
+  function _ensureMapReady() {
+    if (!state.map) throw new Error("TripsMap not initialized. Call TripsMap.init() first.");
+  }
 
-    cityIcon = new L.Icon({
-      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+  function _makeCityIcon() {
+    return new L.Icon({
+      iconUrl:
+        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       shadowSize: [41, 41]
     });
-
-    return map;
   }
 
-  function invalidate() {
-    if (!map) return;
-    map.invalidateSize(true);
-  }
-
-  function clear() {
-    cityLayer.clearLayers();
-    transportLayer.clearLayers();
-    zonesLayer.clearLayers();
-  }
-
-  function colorForType(type) {
+  function _colorForType(type) {
     const t = Utils.norm(type);
     if (t.includes("train")) return APP_CONFIG.colors.train;
     if (t.includes("flight") || t.includes("plane") || t.includes("avion")) return APP_CONFIG.colors.flight;
     return APP_CONFIG.colors.default;
   }
 
-  function cardClassForType(type) {
-    const t = Utils.norm(type);
-    if (t.includes("train")) return "green";
-    if (t.includes("flight") || t.includes("plane") || t.includes("avion")) return "blue";
-    return "gray";
-  }
+  function _safeAddArrow(polyline, color) {
+    // Prevent "Cannot read properties of undefined (reading 'arrowHead')"
+    if (!L.polylineDecorator || !L.Symbol || typeof L.Symbol.arrowHead !== "function") {
+      console.warn("[TripsMap] Arrowheads disabled (leaflet-polylinedecorator not fully available).");
+      return null;
+    }
 
-  function safeAddArrow(line, color) {
-    if (L.polylineDecorator && L.Symbol && typeof L.Symbol.arrowHead === "function") {
-      L.polylineDecorator(line, {
-        patterns: [{
+    const deco = L.polylineDecorator(polyline, {
+      patterns: [
+        {
           offset: "60%",
           repeat: 0,
           symbol: L.Symbol.arrowHead({
@@ -63,84 +53,141 @@ window.TripsMap = (function () {
             polygon: false,
             pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
           })
-        }]
-      }).addTo(transportLayer);
-    }
+        }
+      ]
+    });
+
+    deco.addTo(state.transportLayer);
+    return deco;
+  }
+
+  function init() {
+    // Create map
+    state.map = L.map("map", { worldCopyJump: true }).setView(
+      APP_CONFIG.initialView.center,
+      APP_CONFIG.initialView.zoom
+    );
+
+    // Tiles
+    L.tileLayer(APP_CONFIG.tiles.url, {
+      maxZoom: APP_CONFIG.tiles.maxZoom,
+      attribution: APP_CONFIG.tiles.attribution
+    }).addTo(state.map);
+
+    // Layers
+    state.transportLayer = L.layerGroup().addTo(state.map);
+    state.citiesLayer = L.markerClusterGroup();
+    state.map.addLayer(state.citiesLayer);
+
+    // Icons
+    state.cityIcon = _makeCityIcon();
+
+    return state.map;
+  }
+
+  function invalidate() {
+    _ensureMapReady();
+    state.map.invalidateSize();
+  }
+
+  function clear() {
+    // ✅ IMPORTANT: we clear only dynamic layers
+    // ❌ Do NOT remove tiles or zones layer here
+    if (state.citiesLayer) state.citiesLayer.clearLayers();
+    if (state.transportLayer) state.transportLayer.clearLayers();
   }
 
   async function loadZones() {
-  const url = APP_CONFIG.zones?.url;
-  if (!url) return;
+    _ensureMapReady();
 
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`zones geojson (${res.status})`);
-    const geo = await res.json();
+    const url = APP_CONFIG?.zones?.url;
+    if (!url) {
+      console.warn("[TripsMap] No zones.url in APP_CONFIG");
+      return;
+    }
 
-    const style = APP_CONFIG.zones?.style || {};
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) {
+      console.warn("[TripsMap] Zones fetch failed:", r.status, url);
+      return;
+    }
 
-    const layer = L.geoJSON(geo, {
-      style: () => style,
-      onEachFeature: (feature, leafletLayer) => {
-        const p = feature.properties || {};
-        const tip = p.tooltip || p.name || "Zone";
-        leafletLayer.bindTooltip(tip, {
-          sticky: true,
-          direction: "top",
-          opacity: 0.95
-        });
+    const geo = await r.json();
 
-        // Optionnel: popup plus riche au clic
-        if (p.trip || p.name) {
-          const html = `
-            <div style="font-family: ui-sans-serif, system-ui;">
-              <div style="font-weight:900;">${p.name || "Zone"}</div>
-              ${p.trip ? `<div style="margin-top:6px;opacity:.85;">${p.trip}</div>` : ""}
-            </div>
-          `;
-          leafletLayer.bindPopup(html);
-        }
+    // Accept Feature or FeatureCollection
+    const data =
+      geo?.type === "Feature"
+        ? { type: "FeatureCollection", features: [geo] }
+        : geo;
+
+    // Replace existing zones layer
+    if (state.zonesLayer) state.zonesLayer.remove();
+
+    state.zonesLayer = L.geoJSON(data, {
+      style: () => (APP_CONFIG.zones.style || {}),
+      onEachFeature: (feature, layer) => {
+        const name = feature?.properties?.name || "Zone";
+        const trip = feature?.properties?.trip || "";
+        layer.bindTooltip(`<b>${name}</b><br>${trip}`, { sticky: true });
       }
-    });
-
-    zonesLayer.addLayer(layer);
-
-  } catch (e) {
-    console.warn("Zones non chargées:", e.message);
+    }).addTo(state.map);
   }
-}
-
 
   function addCityMarker(latlng, name) {
-    const m = L.marker(latlng, { icon: cityIcon });
-    m.bindTooltip(name, { permanent: true, direction: "top", offset: [0, -18], opacity: 0.9 });
-    cityLayer.addLayer(m);
+    _ensureMapReady();
+    if (!latlng) return null;
+
+    const m = L.marker(latlng, { icon: state.cityIcon });
+
+    // Always show city name (no count)
+    m.bindTooltip(name, {
+      permanent: true,
+      direction: "top",
+      offset: [0, -18],
+      opacity: 0.9
+    });
+
+    state.citiesLayer.addLayer(m);
+    return m;
   }
 
   function addTransport({ depLatLng, arrLatLng, type, popupHtml }) {
-    const color = colorForType(type);
-    const line = L.polyline([depLatLng, arrLatLng], {
+    _ensureMapReady();
+
+    const color = _colorForType(type);
+
+    // If you later want curves again, you can swap this array for a curve generator
+    const points = [depLatLng, arrLatLng];
+
+    const line = L.polyline(points, {
       color,
-      weight: Utils.norm(type).includes("train") ? 4 : 3,
+      weight: 3,
       opacity: 0.9,
       className: "flight-path"
-    }).addTo(transportLayer);
+    }).addTo(state.transportLayer);
 
-    safeAddArrow(line, color);
-    line.bindPopup(popupHtml);
+    if (popupHtml) line.bindPopup(popupHtml);
 
-    return { line, cssClass: cardClassForType(type), color };
+    // Arrowhead on the line (safe)
+    _safeAddArrow(line, color);
+
+    // Click -> open popup
+    if (popupHtml) {
+      line.on("click", () => line.openPopup());
+    }
+
+    // CSS class for UI cards
+    const cssClass = Utils.cardClass(type);
+
+    return { line, cssClass, color };
   }
 
   return {
     init,
     invalidate,
     clear,
-    addCityMarker,
-    addTransport,
     loadZones,
-    colorForType,
-    cardClassForType,
-    getMap: () => map
+    addCityMarker,
+    addTransport
   };
 })();
