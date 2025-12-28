@@ -115,7 +115,7 @@
 
 <script>
 /* ---------------- MAP INIT ---------------- */
-const map = L.map("map",{worldCopyJump:true}).setView([20,0],2);
+const map = L.map("map",{worldCopyJump:true}).setView([35, 105], 4);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
 
 const markerCluster = L.markerClusterGroup();
@@ -244,7 +244,12 @@ function render(records){
 
   cities.forEach(c=>{
     const m=L.marker(c.latlng,{icon:cityIcon});
-    m.bindTooltip(c.count>1?`${c.name} (${c.count})`:c.name,{permanent:true,direction:"top",offset:[0,-18]});
+    m.bindTooltip(c.name, {
+      permanent: true,
+      direction: "top",
+      offset: [0, -18],
+      opacity: 0.9
+    });
     markerCluster.addLayer(m);
   });
 
