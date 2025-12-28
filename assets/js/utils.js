@@ -22,6 +22,20 @@ window.Utils = {
   },
 
   isMobile() {
-    return window.matchMedia(`(max-width: ${window.APP_CONFIG.mobile.maxWidth}px)`).matches;
+    return window.matchMedia(
+      `(max-width: ${window.APP_CONFIG.mobile.maxWidth}px)`
+    ).matches;
+  },
+
+  // 👉 Utilisé par TripsMap.addTransport
+  cardClass(type) {
+    const t = this.norm(type);
+
+    if (t.includes("train")) return "card card--train";
+    if (t.includes("flight") || t.includes("plane") || t.includes("avion")) {
+      return "card card--flight";
+    }
+
+    return "card";
   }
 };
