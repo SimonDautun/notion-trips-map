@@ -128,8 +128,7 @@
       </div>
 
       <div class="legendRow">
-        <div class="legend-item"><span class="dot dep"></span>Ville départ</div>
-        <div class="legend-item"><span class="dot arr"></span>Ville arrivée / séjour</div>
+        <div class="legend-item"><span class="dot arr"></span>Ville</div>
         <div class="legend-item"><span class="line" style="background:#2b6cb0;"></span>Flight</div>
         <div class="legend-item"><span class="line" style="background:#2a9d4b;"></span>Train</div>
       </div>
@@ -161,16 +160,7 @@
       transportLayer.addTo(map);
 
       // Icons
-      const depIcon = new L.Icon({
-        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      });
-
-      const arrIcon = new L.Icon({
+      const cityIcon = new L.Icon({
         iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
         iconSize: [25, 41],
@@ -286,6 +276,21 @@
       function midpoint(a, b) {
         return L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
       }
+      function addCityMarker(latlng, name) {
+        const m = L.marker(latlng, { icon: cityIcon, riseOnHover: true });
+
+        // label permanent
+        m.bindTooltip(name, {
+          permanent: true,
+          direction: "top",
+          offset: [0, -18],
+          opacity: 0.9
+        });
+
+        markerCluster.addLayer(m);
+        return m;
+      }
+
 
       // Great-circle-ish curve interpolation
       function interpolateCurve(a, b, steps = 48) {
@@ -351,8 +356,14 @@
 
         const sorted = sortByDate(records);
 
-        // click targets from timeline
-        const cardTargets = new Map(); // id -> { bounds, open() }
+        // villes uniques
+        const cities = new Map(); // key -> { latlng, name }
+        function cityKey(latlng, name) {
+          return `${name}|${latlng.lat.toFixed(4)},${latlng.lng.toFixed(4)}`;
+        }
+
+        // cibles cliquables depuis la timeline
+        const cardTargets = new Map();
 
         let lastTripDay = null;
         let lastStayDay = null;
@@ -368,7 +379,7 @@
 
           if (arrLatLng) bounds.extend(arrLatLng);
 
-          // -------- STAY --------
+          /* ===================== STAY ===================== */
           if (kind === "stay" || !r.departure) {
             if (!arrLatLng) return;
 
@@ -384,10 +395,10 @@
             }
 
             const city = cityOnly(r.arrival_label, "City");
+
+            // dates (swap si inversées)
             let aIso = r.arrival_date;
             let dIso = r.departure_date;
-
-            // si inversé (ex: arrivée après départ), on swap
             if (aIso && dIso && aIso.slice(0,10) > dIso.slice(0,10)) {
               [aIso, dIso] = [dIso, aIso];
             }
@@ -396,6 +407,8 @@
             const depD = formatDateFr(dIso);
             const nights = nightsBetween(aIso, dIso);
             const nightsTxt = (nights !== null) ? `${nights} nuit(s)` : null;
+
+            cities.set(cityKey(arrLatLng, city), { latlng: arrLatLng, name: city });
 
             const popup = `
               <div style="font-family: ui-sans-serif, system-ui;">
@@ -407,14 +420,10 @@
               </div>
             `;
 
-            // stay marker is visible and can keep its popup
-            const marker = L.marker(arrLatLng, { icon: arrIcon }).bindPopup(popup);
-            markerCluster.addLayer(marker);
-
             const id = `stay-${idx}`;
             cardTargets.set(id, {
               bounds: L.latLngBounds([arrLatLng]),
-              open: () => marker.openPopup()
+              open: () => L.popup().setLatLng(arrLatLng).setContent(popup).openOn(map)
             });
 
             const card = document.createElement("div");
@@ -427,16 +436,17 @@
               </div>
             `;
             card.addEventListener("click", () => {
-              const target = cardTargets.get(id);
-              if (!target) return;
-              map.fitBounds(target.bounds.pad(0.7));
-              setTimeout(() => target.open(), 200);
+              const t = cardTargets.get(id);
+              if (!t) return;
+              map.fitBounds(t.bounds.pad(0.7));
+              setTimeout(() => t.open(), 200);
             });
+
             document.getElementById("stayList").appendChild(card);
             return;
           }
 
-          // -------- TRANSPORT --------
+          /* ===================== TRANSPORT ===================== */
           if (!Array.isArray(r.departure) || r.departure.length !== 2 || !arrLatLng) return;
 
           if (day !== lastTripDay) {
@@ -457,9 +467,11 @@
           const arrCity = cityOnly(r.arrival_label, "Arrival");
           const title = `${depCity} → ${arrCity}`;
 
+          cities.set(cityKey(depLatLng, depCity), { latlng: depLatLng, name: depCity });
+          cities.set(cityKey(arrLatLng, arrCity), { latlng: arrLatLng, name: arrCity });
+
           if (typeof r.distance_km === "number") totalKm += r.distance_km;
 
-          // LINE (colored by type)
           const curve = interpolateCurve(depLatLng, arrLatLng, 48);
           const color = lineColorForType(ttype);
           const weight = lineWeightForType(ttype);
@@ -471,62 +483,45 @@
             className: "flight-path"
           }).addTo(transportLayer);
 
-          // Arrow head (direction)
-          if (L.polylineDecorator && L.Symbol && typeof L.Symbol.arrowHead === "function") {
-            L.polylineDecorator(line, {
-              patterns: [
-                {
-                  offset: "60%",
-                  repeat: 0,
-                  symbol: L.Symbol.arrowHead({
-                    pixelSize: 12,
-                    polygon: false,
-                    pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
-                  })
-                }
-              ]
-            }).addTo(transportLayer);
-          } else {
-            console.warn("Arrowheads désactivés (plugin non chargé ou arrowHead indisponible)");
-          }
+          // flèche directionnelle
+          L.polylineDecorator(line, {
+            patterns: [{
+              offset: "60%",
+              repeat: 0,
+              symbol: L.Symbol.arrowHead({
+                pixelSize: 12,
+                polygon: false,
+                pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
+              })
+            }]
+          }).addTo(transportLayer);
 
-          // City markers (NO transport popup on them)
-          markerCluster.addLayer(L.marker(depLatLng, { icon: depIcon }));
-          markerCluster.addLayer(L.marker(arrLatLng, { icon: arrIcon }));
-
-          // Transport popup attached to the ARROW (midpoint marker invisible)
           const depD = formatDateFr(r.departure_date);
           const arrD = formatDateFr(r.arrival_date);
           const dLabel = (!r.arrival_date) ? depD : `${depD} → ${arrD}`;
-
-          const distLine = (typeof r.distance_km === "number")
-            ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>`
-            : "";
 
           const popup = `
             <div style="font-family: ui-sans-serif, system-ui;">
               <div style="font-weight:900;">${title}</div>
               <div style="margin-top:6px;opacity:.8;">${ttype}</div>
               <div style="margin-top:6px;"><b>Date:</b> ${dLabel}</div>
-              ${distLine}
+              ${typeof r.distance_km === "number"
+                ? `<div style="margin-top:6px;opacity:.8;">Distance: ${r.distance_km.toLocaleString("fr-FR")} km</div>`
+                : ``}
             </div>
           `;
 
           const mid = midpoint(depLatLng, arrLatLng);
-          const transportMarker = L.marker(mid, { opacity: 0, interactive: true }).bindPopup(popup);
-          markerCluster.addLayer(transportMarker);
+          const ghost = L.marker(mid, { opacity: 0, interactive: true }).bindPopup(popup);
+          markerCluster.addLayer(ghost);
+          line.on("click", () => ghost.openPopup());
 
-          // Clicking the line opens the popup on the arrow
-          line.on("click", () => transportMarker.openPopup());
-
-          // Card target
           const id = `trip-${idx}`;
           cardTargets.set(id, {
             bounds: L.latLngBounds([depLatLng, arrLatLng]),
-            open: () => transportMarker.openPopup()
+            open: () => ghost.openPopup()
           });
 
-          // Timeline card (colored by type)
           const card = document.createElement("div");
           card.className = `card ${cardClassForType(ttype)}`;
           card.innerHTML = `
@@ -534,29 +529,44 @@
             <div class="meta">
               <span class="badge">${ttype}</span>
               <span class="badge">${dateLabel(r.departure_date, r.arrival_date)}</span>
-              ${typeof r.distance_km === "number" ? `<span class="badge">${Math.round(r.distance_km).toLocaleString("fr-FR")} km</span>` : ``}
+              ${typeof r.distance_km === "number"
+                ? `<span class="badge">${Math.round(r.distance_km).toLocaleString("fr-FR")} km</span>`
+                : ``}
             </div>
           `;
           card.addEventListener("click", () => {
-            const target = cardTargets.get(id);
-            if (!target) return;
-            map.fitBounds(target.bounds.pad(0.55));
-            setTimeout(() => target.open(), 200);
+            const t = cardTargets.get(id);
+            if (!t) return;
+            map.fitBounds(t.bounds.pad(0.55));
+            setTimeout(() => t.open(), 200);
           });
+
           document.getElementById("tripList").appendChild(card);
         });
 
-        // KPIs
+        // ajouter les villes une seule fois
+        cities.forEach(({ latlng, name }) => {
+          const m = L.marker(latlng, { icon: cityIcon, riseOnHover: true });
+          m.bindTooltip(name, {
+            permanent: true,
+            direction: "top",
+            offset: [0, -18],
+            opacity: 0.9
+          });
+          markerCluster.addLayer(m);
+        });
+
         document.getElementById("kpiItems").textContent = sorted.length.toLocaleString("fr-FR");
         document.getElementById("kpiDistance").textContent = totalKm > 0 ? formatKm(totalKm) : "—";
-        document.getElementById("lastUpdated").textContent = "maj: " + new Date().toLocaleDateString("fr-FR");
+        document.getElementById("lastUpdated").textContent =
+          "maj: " + new Date().toLocaleDateString("fr-FR");
 
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.2));
 
         if (sorted.length === 0) {
-          L.popup().setLatLng([20, 0]).setContent("Aucun item à afficher (cities.json est vide).").openOn(map);
-          document.getElementById("kpiItems").textContent = "0";
-          document.getElementById("kpiDistance").textContent = "0 km";
+          L.popup().setLatLng([20, 0])
+            .setContent("Aucun item à afficher (cities.json est vide).")
+            .openOn(map);
         }
       }
 
