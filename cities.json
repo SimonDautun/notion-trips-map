@@ -18,6 +18,18 @@
     "arrival_date": null
   },
   {
+    "kind": "stay",
+    "name": "Yunan Trip - Ciel Chine",
+    "type": "Hotel",
+    "arrival": [
+      25.0,
+      102.0
+    ],
+    "arrival_label": "Yunan, 云南省, 中国",
+    "arrival_date": "2026-01-03",
+    "departure_date": "2026-01-09"
+  },
+  {
     "kind": "transport",
     "name": "[Transport] - HKG → BJG",
     "type": "Train",
@@ -124,5 +136,89 @@
     "distance_km": 320.56,
     "departure_date": "2026-01-03",
     "arrival_date": null
+  },
+  {
+    "kind": "stay",
+    "name": "[Hotel] - KMG - 2",
+    "type": "Hotel",
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival_label": "昆明市, 云南省, 中国",
+    "arrival_date": "2026-01-10",
+    "departure_date": "2026-01-11"
+  },
+  {
+    "kind": "stay",
+    "name": "[Hotel] - HKG",
+    "type": "Hotel",
+    "arrival": [
+      22.2792968,
+      114.1628907
+    ],
+    "arrival_label": "香港 Hong Kong, 中国",
+    "arrival_date": "2026-01-11",
+    "departure_date": "2026-01-14"
+  },
+  {
+    "kind": "stay",
+    "name": "[Hotel] - KMG - 1",
+    "type": "Hotel",
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival_label": "昆明市, 云南省, 中国",
+    "arrival_date": "2026-01-02",
+    "departure_date": "2026-01-03"
+  },
+  {
+    "kind": "stay",
+    "name": "[Hotel] - BJG",
+    "type": "Hotel",
+    "arrival": [
+      40.190632,
+      116.412144
+    ],
+    "arrival_label": "Beijing, 北京市, 中国",
+    "arrival_date": "2026-01-18",
+    "departure_date": "2026-01-20"
+  },
+  {
+    "kind": "stay",
+    "name": "[Nid d’aigle] - SHG 1",
+    "type": "Le nid d'aigle",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shangaï, 上海市, 中国",
+    "arrival_date": "2025-12-30",
+    "departure_date": "2026-01-02"
+  },
+  {
+    "kind": "stay",
+    "name": "[Nid d’aigle] - SHG 2",
+    "type": "Le nid d'aigle",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shangaï, 上海市, 中国",
+    "arrival_date": "2026-01-14",
+    "departure_date": "2026-01-18"
+  },
+  {
+    "kind": "stay",
+    "name": "Item",
+    "type": "Le nid d'aigle",
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "arrival_label": "Shangaï, 上海市, 中国",
+    "arrival_date": "2026-01-20",
+    "departure_date": "2026-01-21"
   }
 ]

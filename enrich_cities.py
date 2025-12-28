@@ -169,10 +169,11 @@ def export_cities_json(filepath="cities.json"):
     items = []
     cursor = None
 
-    # On exporte toute ligne qui a au moins une ville d'arrivée (séjour ou transport)
+    # On exporte toute ligne qui a AU MOINS une coordonnée (arrival OU departure)
     filter_payload = {
-        "and": [
-            {"property": "Arrival details", "rich_text": {"is_not_empty": True}}
+        "or": [
+            {"property": "Arrival details", "rich_text": {"is_not_empty": True}},
+            {"property": "Departure details", "rich_text": {"is_not_empty": True}},
         ]
     }
 
@@ -182,46 +183,50 @@ def export_cities_json(filepath="cities.json"):
         for page in res.get("results", []):
             name = extract_title(page, "Name") or "Item"
             trip_type = extract_select(page, "Type") or "Unknown"
-            start, end = extract_date_range(page, "Date")  # start = départ, end = arrivée (transport) / départ (stay)
+            start, end = extract_date_range(page, "Date")  # start/end
 
             arr_details = extract_rich_text(page, "Arrival details") or ""
             dep_details = extract_rich_text(page, "Departure details") or ""
 
-            arr = parse_details(arr_details)       # Arrival = ville d'arrivée / lieu du séjour
-            dep = parse_details(dep_details)       # Departure = ville de départ (souvent vide pour un stay)
+            arr = parse_details(arr_details)  # Arrival = ville d'arrivée (transport)
+            dep = parse_details(dep_details)  # Departure = ville de départ (transport) OU ville unique (stay)
 
-            if not arr:
-                continue
-
-            # --- STAY : pas de départ géocodé ---
-            if not dep:
+            # --- STAY (logique inversée) : Arrival vide, Departure rempli ---
+            # => on met la ville sur arrival[] pour l'affichage côté front (stay = 1 point)
+            if dep and not arr:
                 items.append({
                     "kind": "stay",
                     "name": name,
                     "type": trip_type,
-                    "arrival": [arr["lat"], arr["lon"]],
-                    "arrival_label": arr["label"],
-                    # Pour un séjour : start = arrivée, end = départ
+                    "arrival": [dep["lat"], dep["lon"]],
+                    "arrival_label": dep["label"],
+                    # stay: start=arrivée, end=départ (si ta colonne Date est bien ça)
                     "arrival_date": start,
                     "departure_date": end
                 })
                 continue
 
-            # --- TRANSPORT : dep + arr ---
-            dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
-            items.append({
-                "kind": "transport",
-                "name": name,
-                "type": trip_type,
-                "departure": [dep["lat"], dep["lon"]],
-                "arrival": [arr["lat"], arr["lon"]],
-                "departure_label": dep["label"],
-                "arrival_label": arr["label"],
-                "distance_km": round(dist, 2),
-                # Pour un transport : start = départ, end = arrivée
-                "departure_date": start,
-                "arrival_date": end
-            })
+            # --- TRANSPORT : il faut dep + arr ---
+            if dep and arr:
+                dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
+                items.append({
+                    "kind": "transport",
+                    "name": name,
+                    "type": trip_type,
+                    "departure": [dep["lat"], dep["lon"]],
+                    "arrival": [arr["lat"], arr["lon"]],
+                    "departure_label": dep["label"],
+                    "arrival_label": arr["label"],
+                    "distance_km": round(dist, 2),
+                    # transport: start=départ, end=arrivée
+                    "departure_date": start,
+                    "arrival_date": end
+                })
+                continue
+
+            # Si on n'a pas assez d'info (aucune coordonnée exploitable), on ignore
+            # (ex: Not found)
+            continue
 
         if not res.get("has_more"):
             break
@@ -231,6 +236,7 @@ def export_cities_json(filepath="cities.json"):
         json.dump(items, f, ensure_ascii=False, indent=2)
 
     print(f"Exported {len(items)} item(s) to {filepath}")
+
 
 def main():
     a = enrich_details("Arrival", "Arrival details")
