@@ -17,277 +17,53 @@
   <!-- Polyline decorator (arrows) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-polylinedecorator/1.6.0/leaflet.polylineDecorator.min.js"></script>
 
-  <style>
-    html, body { height: 100%; margin: 0; }
-    #map { height: 100vh; width: 100vw; }
-
-    .overlay {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 9999;
-      width: 380px;
-      max-width: calc(100vw - 24px);
-      background: rgba(255,255,255,0.95);
-      border-radius: 14px;
-      padding: 12px;
-      font-family: ui-sans-serif, system-ui;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
-    }
-
-    .header { display:flex; justify-content:space-between; align-items:baseline; }
-    .header h1 { font-size:14px; margin:0; font-weight:900; }
-    .sub { font-size:12px; opacity:.7; }
-
-    .kpis { display:flex; gap:10px; margin:10px 0; }
-    .kpi { flex:1; background:rgba(0,0,0,.04); border-radius:12px; padding:8px; }
-    .kpi .label { font-size:12px; opacity:.7; }
-    .kpi .value { font-size:16px; font-weight:900; }
-
-    .legendRow { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-    .legend-item { font-size:12px; display:flex; align-items:center; gap:6px; }
-    .dot { width:10px; height:10px; border-radius:50%; background:#2a9d4b; }
-    .line { width:18px; height:2px; border-radius:2px; }
-    .blue { background:#2b6cb0; }
-    .green { background:#2a9d4b; }
-
-    .lists { max-height:55vh; overflow:auto; display:grid; gap:14px; }
-
-    .sectionTitle { font-size:12px; font-weight:900; opacity:.8; }
-
-    .card {
-      border-radius:14px;
-      padding:9px 10px;
-      background:rgba(0,0,0,.04);
-      border-left:4px solid rgba(0,0,0,.2);
-      cursor:pointer;
-    }
-    .card.blue { border-color:#2b6cb0; }
-    .card.green { border-color:#2a9d4b; }
-    .card.gray { border-color:#999; }
-
-    .card .title { font-weight:900; font-size:13px; }
-    .card .meta { font-size:12px; opacity:.8; display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
-    .badge { padding:2px 8px; border-radius:999px; background:rgba(0,0,0,.08); }
-
-    .flight-path { stroke-dasharray:8 10; animation:dash 2.2s linear infinite; }
-    @keyframes dash { to { stroke-dashoffset:-18; } }
-  </style>
+  <!-- App CSS -->
+  <link rel="stylesheet" href="./assets/css/styles.css" />
 </head>
 
+  <!-- App JS -->
+<script src="./assets/js/config.js"></script>
+<script src="./assets/js/utils.js"></script>
+<script src="./assets/js/ui.js"></script>
+<script src="./assets/js/map.js"></script>
+<script src="./assets/js/app.js"></script>
+
 <body>
-<div id="map"></div>
+  <div id="map"></div>
 
-<div class="overlay">
-  <div class="header">
-    <h1>Trips</h1>
-    <div class="sub" id="lastUpdated">—</div>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi">
-      <div class="label">Nuits totales</div>
-      <div class="value" id="kpiNights">—</div>
+  <div class="overlay">
+    <div class="header">
+      <h1>Trips</h1>
+      <div class="sub" id="lastUpdated">—</div>
     </div>
-    <div class="kpi">
-      <div class="label">Distance</div>
-      <div class="value" id="kpiDistance">—</div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Nuits totales</div>
+        <div class="value" id="kpiNights">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Distance</div>
+        <div class="value" id="kpiDistance">—</div>
+      </div>
+    </div>
+
+    <div class="legendRow">
+      <div class="legend-item"><span class="dot"></span>Ville</div>
+      <div class="legend-item"><span class="line blue"></span>Flight</div>
+      <div class="legend-item"><span class="line green"></span>Train</div>
+    </div>
+
+    <div class="lists">
+      <div>
+        <div class="sectionTitle">Trajets</div>
+        <div id="tripList" class="list"></div>
+      </div>
+      <div>
+        <div class="sectionTitle">Séjours</div>
+        <div id="stayList" class="list"></div>
+      </div>
     </div>
   </div>
-
-  <div class="legendRow">
-    <div class="legend-item"><span class="dot"></span>Ville</div>
-    <div class="legend-item"><span class="line blue"></span>Flight</div>
-    <div class="legend-item"><span class="line green"></span>Train</div>
-  </div>
-
-  <div class="lists">
-    <div>
-      <div class="sectionTitle">Trajets</div>
-      <div id="tripList" style="display:grid;gap:8px;"></div>
-    </div>
-    <div>
-      <div class="sectionTitle">Séjours</div>
-      <div id="stayList" style="display:grid;gap:8px;"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ---------------- MAP INIT ---------------- */
-const map = L.map("map",{worldCopyJump:true}).setView([35, 105], 4);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
-
-const markerCluster = L.markerClusterGroup();
-const transportLayer = L.layerGroup();
-map.addLayer(markerCluster);
-map.addLayer(transportLayer);
-
-const cityIcon = new L.Icon({
-  iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
-  shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize:[25,41],
-  iconAnchor:[12,41],
-  shadowSize:[41,41]
-});
-
-/* ---------------- HELPERS ---------------- */
-const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
-const cityOnly = l => (l||"").split(",")[0].trim();
-const fmt = iso => iso ? iso.slice(0,10).split("-").reverse().join("/") : "—";
-
-function nights(a,b){
-  if(!a||!b) return null;
-  const d=Math.abs((new Date(b)-new Date(a))/(1000*60*60*24));
-  return Math.round(d);
-}
-
-function colorFor(t){
-  t=norm(t);
-  if(t.includes("train")) return "#2a9d4b";
-  return "#2b6cb0";
-}
-
-function cardClass(t){
-  t=norm(t);
-  if(t.includes("train")) return "green";
-  if(t.includes("flight")) return "blue";
-  return "gray";
-}
-
-function safeAddArrow(line, color) {
-  if (L.polylineDecorator && L.Symbol && typeof L.Symbol.arrowHead === "function") {
-    L.polylineDecorator(line, {
-      patterns: [{
-        offset: "60%",
-        repeat: 0,
-        symbol: L.Symbol.arrowHead({
-          pixelSize: 12,
-          polygon: false,
-          pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
-        })
-      }]
-    }).addTo(transportLayer);
-    return true;
-  }
-
-  console.warn("Arrowheads désactivés: L.Symbol.arrowHead indisponible");
-  return false;
-}
-
-function render(records){
-  // si tu as encore markerCluster dans ton index, ça marche avec.
-  // si tu as remplacé par cityLayer/transportLayer, adapte clearLayers/addLayer.
-  markerCluster.clearLayers();
-  transportLayer.clearLayers();
-
-  tripList.innerHTML="";
-  stayList.innerHTML="";
-
-  const cities = new Map(); // key -> { latlng, name }
-  let totalKm = 0;
-  let totalNights = 0;
-
-  records.sort((a,b)=>(a.departure_date||a.arrival_date||"").localeCompare(b.departure_date||b.arrival_date||""));
-
-  records.forEach((r,i)=>{
-    const arr = (Array.isArray(r.arrival) && r.arrival.length===2) ? L.latLng(r.arrival[0],r.arrival[1]) : null;
-    const dep = (Array.isArray(r.departure) && r.departure.length===2) ? L.latLng(r.departure[0],r.departure[1]) : null;
-    const type = r.type || "";
-
-    // Collect cities (grouped by normalized city name)
-    if(arr){
-      const name = cityOnly(r.arrival_label);
-      const key = norm(name);
-      if (!cities.has(key)) cities.set(key, { latlng: arr, name });
-    }
-    if(dep){
-      const name = cityOnly(r.departure_label);
-      const key = norm(name);
-      if (!cities.has(key)) cities.set(key, { latlng: dep, name });
-    }
-
-    // TRANSPORT
-    if(dep && arr){
-      const curve=[dep,arr];
-      const color=colorFor(type);
-
-      const line=L.polyline(curve,{color,weight:3,opacity:.9,className:"flight-path"}).addTo(transportLayer);
-
-      // arrow (safe)
-      safeAddArrow(line, color);
-
-      // popup on the line (no ghost markers)
-      const popup = `<b>${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</b><br>${type}<br>${fmt(r.departure_date)} → ${fmt(r.arrival_date)}`;
-      line.bindPopup(popup);
-
-      const card=document.createElement("div");
-      card.className=`card ${cardClass(type)}`;
-      card.innerHTML=`
-        <div class="title">${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</div>
-        <div class="meta">
-          <span class="badge">${type}</span>
-          <span class="badge">${fmt(r.departure_date)}</span>
-        </div>
-      `;
-      card.onclick=()=>line.openPopup();
-      tripList.appendChild(card);
-
-      if(typeof r.distance_km === "number") totalKm += r.distance_km;
-      return;
-    }
-
-    // STAY (arrival but no departure coords)
-    if(arr){
-      let a = r.arrival_date;
-      let d = r.departure_date;
-
-      // swap if inverted
-      if(a && d && a.slice(0,10) > d.slice(0,10)) [a,d] = [d,a];
-
-      const n = nights(a,d);
-      if (typeof n === "number" && n > 0) totalNights += n;
-
-      const card=document.createElement("div");
-      card.className=`card gray`;
-      card.innerHTML=`
-        <div class="title">${cityOnly(r.arrival_label)}</div>
-        <div class="meta">
-          <span class="badge">${type}</span>
-          <span class="badge">${fmt(a)} → ${fmt(d)} (${n ?? "?"} nuits)</span>
-        </div>
-      `;
-      stayList.appendChild(card);
-    }
-  });
-
-  // Add ONE marker per city, label only (no counts)
-  cities.forEach(c=>{
-    const m=L.marker(c.latlng,{icon:cityIcon});
-    m.bindTooltip(c.name, {
-      permanent: true,
-      direction: "top",
-      offset: [0, -18],
-      opacity: 0.9
-    });
-    markerCluster.addLayer(m);
-  });
-
-  // KPIs
-  kpiNights.textContent = totalNights > 0 ? totalNights.toLocaleString("fr-FR") : "—";
-  kpiDistance.textContent = totalKm > 0 ? Math.round(totalKm).toLocaleString("fr-FR")+" km" : "—";
-  lastUpdated.textContent = "maj: " + new Date().toLocaleDateString("fr-FR");
-}
-
-
-/* ---------------- RENDER ---------------- */
-async function load(){
-  const r=await fetch("./cities.json",{cache:"no-store"});
-  return await r.json();
-}
-
-
-load().then(render);
-</script>
 </body>
 </html>
