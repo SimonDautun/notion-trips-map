@@ -216,7 +216,7 @@
     "distance_km": 0.0
   },
   {
-    "name": "Trip",
+    "name": "[Nid d’aigle] - SHG 1",
     "type": "Le nid d'aigle",
     "departure_date": "2025-12-30",
     "arrival_date": "2026-01-02",
@@ -234,7 +234,7 @@
     "distance_km": 0.0
   },
   {
-    "name": "Trip",
+    "name": "[Nid d’aigle] - SHG 2",
     "type": "Le nid d'aigle",
     "departure_date": "2026-01-14",
     "arrival_date": "2026-01-18",
