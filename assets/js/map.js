@@ -1,5 +1,5 @@
 window.TripsMap = (function () {
-  let map, cityLayer, transportLayer, cityIcon;
+  let map, cityLayer, transportLayer, cityIcon, zonesLayer;
 
   function init() {
     const cfg = window.APP_CONFIG;
@@ -14,6 +14,7 @@ window.TripsMap = (function () {
     // IMPORTANT: tu ne voulais plus de regroupement visuel => layer simple (pas MarkerCluster)
     cityLayer = L.layerGroup().addTo(map);
     transportLayer = L.layerGroup().addTo(map);
+    zonesLayer = L.layerGroup().addTo(map);
 
     cityIcon = new L.Icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
@@ -34,6 +35,7 @@ window.TripsMap = (function () {
   function clear() {
     cityLayer.clearLayers();
     transportLayer.clearLayers();
+    zonesLayer.clearLayers();
   }
 
   function colorForType(type) {
@@ -66,6 +68,49 @@ window.TripsMap = (function () {
     }
   }
 
+  async function loadZones() {
+  const url = APP_CONFIG.zones?.url;
+  if (!url) return;
+
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`zones geojson (${res.status})`);
+    const geo = await res.json();
+
+    const style = APP_CONFIG.zones?.style || {};
+
+    const layer = L.geoJSON(geo, {
+      style: () => style,
+      onEachFeature: (feature, leafletLayer) => {
+        const p = feature.properties || {};
+        const tip = p.tooltip || p.name || "Zone";
+        leafletLayer.bindTooltip(tip, {
+          sticky: true,
+          direction: "top",
+          opacity: 0.95
+        });
+
+        // Optionnel: popup plus riche au clic
+        if (p.trip || p.name) {
+          const html = `
+            <div style="font-family: ui-sans-serif, system-ui;">
+              <div style="font-weight:900;">${p.name || "Zone"}</div>
+              ${p.trip ? `<div style="margin-top:6px;opacity:.85;">${p.trip}</div>` : ""}
+            </div>
+          `;
+          leafletLayer.bindPopup(html);
+        }
+      }
+    });
+
+    zonesLayer.addLayer(layer);
+
+  } catch (e) {
+    console.warn("Zones non chargées:", e.message);
+  }
+}
+
+
   function addCityMarker(latlng, name) {
     const m = L.marker(latlng, { icon: cityIcon });
     m.bindTooltip(name, { permanent: true, direction: "top", offset: [0, -18], opacity: 0.9 });
@@ -93,6 +138,7 @@ window.TripsMap = (function () {
     clear,
     addCityMarker,
     addTransport,
+    loadZones,
     colorForType,
     cardClassForType,
     getMap: () => map

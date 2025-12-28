@@ -15,5 +15,15 @@ window.APP_CONFIG = {
     maxWidth: 640
   },
   // data
-  dataUrl: "cities.json"
+  dataUrl: "cities.json",
+  zones: {
+    url: "assets/data/zones.geojson",
+    style: {
+      color: "#f59e0b",
+      weight: 2,
+      opacity: 1,
+      fillColor: "#f59e0b",
+      fillOpacity: 0.18
+    }
+  }
 };

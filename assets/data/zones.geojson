@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Yunnan – Nord-Ouest",
+        "tooltip": "Voyage au Yunnan – janvier 2026 (8 jours)",
+        "trip": "Voyage 8 jours (Lijiang • Baoshan • Shangri-La)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [99.3, 26.9],
+          [100.4, 28.4],
+          [99.7, 29.0],
+          [98.8, 28.2],
+          [99.3, 26.9]
+        ]]
+      }
+    }
+  ]
+}

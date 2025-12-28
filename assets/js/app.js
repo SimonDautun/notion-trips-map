@@ -1,6 +1,7 @@
 (async function main() {
   UI.init();
   const map = TripsMap.init();
+  await TripsMap.loadZones();
 
   window.addEventListener("overlay:toggled", () => {
     setTimeout(() => TripsMap.invalidate(), 250);

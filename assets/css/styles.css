@@ -51,6 +51,10 @@ html, body { height: 100%; margin: 0; }
 .card .meta { font-size:12px; opacity:.8; display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
 .badge { padding:2px 8px; border-radius:999px; background:rgba(0,0,0,.08); }
 
+.leaflet-interactive {
+  cursor: pointer;
+}
+
 .flight-path { stroke-dasharray:8 10; animation:dash 2.2s linear infinite; }
 @keyframes dash { to { stroke-dashoffset:-18; } }
 
