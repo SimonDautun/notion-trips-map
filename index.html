@@ -203,10 +203,14 @@
 
       function nightsBetween(arrIso, depIso) {
         if (!arrIso || !depIso) return null;
+
         const a = new Date(arrIso.slice(0,10));
         const d = new Date(depIso.slice(0,10));
+        if (!isFinite(a) || !isFinite(d)) return null;
+
+        // si inversé, on calcule quand même une durée positive
         const diff = Math.round((d - a) / (1000*60*60*24));
-        return isFinite(diff) ? diff : null;
+        return Math.abs(diff);
       }
 
       function isoDay(r) {
@@ -380,9 +384,17 @@
             }
 
             const city = cityOnly(r.arrival_label, "City");
-            const arrD = formatDateFr(r.arrival_date);
-            const depD = formatDateFr(r.departure_date);
-            const nights = nightsBetween(r.arrival_date, r.departure_date);
+            let aIso = r.arrival_date;
+            let dIso = r.departure_date;
+
+            // si inversé (ex: arrivée après départ), on swap
+            if (aIso && dIso && aIso.slice(0,10) > dIso.slice(0,10)) {
+              [aIso, dIso] = [dIso, aIso];
+            }
+
+            const arrD = formatDateFr(aIso);
+            const depD = formatDateFr(dIso);
+            const nights = nightsBetween(aIso, dIso);
             const nightsTxt = (nights !== null) ? `${nights} nuit(s)` : null;
 
             const popup = `
