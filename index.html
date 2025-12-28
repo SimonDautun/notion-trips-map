@@ -86,8 +86,8 @@
 
   <div class="kpis">
     <div class="kpi">
-      <div class="label">Items</div>
-      <div class="value" id="kpiItems">—</div>
+      <div class="label">Nuits totales</div>
+      <div class="value" id="kpiNights">—</div>
     </div>
     <div class="kpi">
       <div class="label">Distance</div>
@@ -175,73 +175,93 @@ function safeAddArrow(line, color) {
   return false;
 }
 
-
-/* ---------------- RENDER ---------------- */
-async function load(){
-  const r=await fetch("./cities.json",{cache:"no-store"});
-  return await r.json();
-}
-
 function render(records){
+  // si tu as encore markerCluster dans ton index, ça marche avec.
+  // si tu as remplacé par cityLayer/transportLayer, adapte clearLayers/addLayer.
   markerCluster.clearLayers();
   transportLayer.clearLayers();
+
   tripList.innerHTML="";
   stayList.innerHTML="";
 
-  const cities=new Map();
-  let totalKm=0;
+  const cities = new Map(); // key -> { latlng, name }
+  let totalKm = 0;
+  let totalNights = 0;
 
   records.sort((a,b)=>(a.departure_date||a.arrival_date||"").localeCompare(b.departure_date||b.arrival_date||""));
 
   records.forEach((r,i)=>{
-    const arr = r.arrival && L.latLng(r.arrival[0],r.arrival[1]);
-    const dep = r.departure && L.latLng(r.departure[0],r.departure[1]);
-    const type = r.type||"";
+    const arr = (Array.isArray(r.arrival) && r.arrival.length===2) ? L.latLng(r.arrival[0],r.arrival[1]) : null;
+    const dep = (Array.isArray(r.departure) && r.departure.length===2) ? L.latLng(r.departure[0],r.departure[1]) : null;
+    const type = r.type || "";
 
+    // Collect cities (grouped by normalized city name)
     if(arr){
-      const key=norm(cityOnly(r.arrival_label));
-      cities.set(key,cities.get(key)||{latlng:arr,name:cityOnly(r.arrival_label),count:0});
-      cities.get(key).count++;
+      const name = cityOnly(r.arrival_label);
+      const key = norm(name);
+      if (!cities.has(key)) cities.set(key, { latlng: arr, name });
     }
     if(dep){
-      const key=norm(cityOnly(r.departure_label));
-      cities.set(key,cities.get(key)||{latlng:dep,name:cityOnly(r.departure_label),count:0});
-      cities.get(key).count++;
+      const name = cityOnly(r.departure_label);
+      const key = norm(name);
+      if (!cities.has(key)) cities.set(key, { latlng: dep, name });
     }
 
-    if(dep&&arr){
+    // TRANSPORT
+    if(dep && arr){
       const curve=[dep,arr];
       const color=colorFor(type);
 
       const line=L.polyline(curve,{color,weight:3,opacity:.9,className:"flight-path"}).addTo(transportLayer);
 
+      // arrow (safe)
       safeAddArrow(line, color);
 
-      const mid=L.latLng((dep.lat+arr.lat)/2,(dep.lng+arr.lng)/2);
-      const popup=`<b>${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</b><br>${type}<br>${fmt(r.departure_date)} → ${fmt(r.arrival_date)}`;
-      const ghost=L.marker(mid,{opacity:0}).bindPopup(popup);
-      markerCluster.addLayer(ghost);
-      line.on("click",()=>ghost.openPopup());
+      // popup on the line (no ghost markers)
+      const popup = `<b>${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</b><br>${type}<br>${fmt(r.departure_date)} → ${fmt(r.arrival_date)}`;
+      line.bindPopup(popup);
 
       const card=document.createElement("div");
       card.className=`card ${cardClass(type)}`;
-      card.innerHTML=`<div class="title">${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</div>
-        <div class="meta"><span class="badge">${type}</span><span class="badge">${fmt(r.departure_date)}</span></div>`;
-      card.onclick=()=>ghost.openPopup();
+      card.innerHTML=`
+        <div class="title">${cityOnly(r.departure_label)} → ${cityOnly(r.arrival_label)}</div>
+        <div class="meta">
+          <span class="badge">${type}</span>
+          <span class="badge">${fmt(r.departure_date)}</span>
+        </div>
+      `;
+      card.onclick=()=>line.openPopup();
       tripList.appendChild(card);
 
-      if(r.distance_km) totalKm+=r.distance_km;
-    } else if(arr){
-      let a=r.arrival_date,d=r.departure_date;
-      if(a&&d&&a>d)[a,d]=[d,a];
+      if(typeof r.distance_km === "number") totalKm += r.distance_km;
+      return;
+    }
+
+    // STAY (arrival but no departure coords)
+    if(arr){
+      let a = r.arrival_date;
+      let d = r.departure_date;
+
+      // swap if inverted
+      if(a && d && a.slice(0,10) > d.slice(0,10)) [a,d] = [d,a];
+
+      const n = nights(a,d);
+      if (typeof n === "number" && n > 0) totalNights += n;
+
       const card=document.createElement("div");
       card.className=`card gray`;
-      card.innerHTML=`<div class="title">${cityOnly(r.arrival_label)}</div>
-        <div class="meta"><span class="badge">${type}</span><span class="badge">${fmt(a)} → ${fmt(d)} (${nights(a,d)||"?"} nuits)</span></div>`;
+      card.innerHTML=`
+        <div class="title">${cityOnly(r.arrival_label)}</div>
+        <div class="meta">
+          <span class="badge">${type}</span>
+          <span class="badge">${fmt(a)} → ${fmt(d)} (${n ?? "?"} nuits)</span>
+        </div>
+      `;
       stayList.appendChild(card);
     }
   });
 
+  // Add ONE marker per city, label only (no counts)
   cities.forEach(c=>{
     const m=L.marker(c.latlng,{icon:cityIcon});
     m.bindTooltip(c.name, {
@@ -253,10 +273,19 @@ function render(records){
     markerCluster.addLayer(m);
   });
 
-  kpiItems.textContent=records.length;
-  kpiDistance.textContent=Math.round(totalKm).toLocaleString("fr-FR")+" km";
-  lastUpdated.textContent="maj: "+new Date().toLocaleDateString("fr-FR");
+  // KPIs
+  kpiNights.textContent = totalNights > 0 ? totalNights.toLocaleString("fr-FR") : "—";
+  kpiDistance.textContent = totalKm > 0 ? Math.round(totalKm).toLocaleString("fr-FR")+" km" : "—";
+  lastUpdated.textContent = "maj: " + new Date().toLocaleDateString("fr-FR");
 }
+
+
+/* ---------------- RENDER ---------------- */
+async function load(){
+  const r=await fetch("./cities.json",{cache:"no-store"});
+  return await r.json();
+}
+
 
 load().then(render);
 </script>
