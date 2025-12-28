@@ -1,7 +1,9 @@
 [
   {
+    "kind": "transport",
     "name": "[Transport] - BJG → SHG",
     "type": "Train",
+<<<<<<< HEAD
     "departure_date": "2026-01-20",
     "arrival_date": null,
     "arrival": [
@@ -10,14 +12,24 @@
     ],
     "arrival_label": "Shanghaï, 上海市, 中国",
     "kind": "transport",
+=======
+>>>>>>> bae3f53 (Export stays in cities.json)
     "departure": [
       40.190632,
       116.412144
     ],
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
     "departure_label": "Beijing, 北京市, 中国",
-    "distance_km": 1095.4
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "distance_km": 1095.4,
+    "departure_date": "2026-01-20",
+    "arrival_date": null
   },
   {
+<<<<<<< HEAD
     "name": "[Transport] - HKG → BJG",
     "type": "Train",
     "departure_date": "2026-01-18",
@@ -28,10 +40,16 @@
     ],
     "arrival_label": "Beijing, 北京市, 中国",
     "kind": "transport",
+=======
+    "kind": "transport",
+    "name": "[Transport] - HKG → BJG",
+    "type": "Train",
+>>>>>>> bae3f53 (Export stays in cities.json)
     "departure": [
       31.2312707,
       121.4700152
     ],
+<<<<<<< HEAD
     "departure_label": "Shanghaï, 上海市, 中国",
     "distance_km": 1095.4
   },
@@ -46,10 +64,27 @@
     ],
     "arrival_label": "香港 Hong Kong, 中国",
     "kind": "transport",
+=======
+    "arrival": [
+      40.190632,
+      116.412144
+    ],
+    "departure_label": "Shanghaï, 上海市, 中国",
+    "arrival_label": "Beijing, 北京市, 中国",
+    "distance_km": 1095.4,
+    "departure_date": "2026-01-18",
+    "arrival_date": null
+  },
+  {
+    "kind": "transport",
+    "name": "[Transport] - KMG → HKG",
+    "type": "Flight",
+>>>>>>> bae3f53 (Export stays in cities.json)
     "departure": [
       25.0363006,
       102.7086139
     ],
+<<<<<<< HEAD
     "departure_label": "昆明市, 云南省, 中国",
     "distance_km": 1205.75
   },
@@ -70,16 +105,54 @@
     ],
     "departure_label": "香港 Hong Kong, 中国",
     "distance_km": 1230.94
+=======
+    "arrival": [
+      22.2792968,
+      114.1628907
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "arrival_label": "香港 Hong Kong, 中国",
+    "distance_km": 1205.75,
+    "departure_date": "2026-01-11",
+    "arrival_date": null
   },
   {
+    "kind": "transport",
+    "name": "[Transport] - HKG → SHG",
+    "type": "Train",
+    "departure": [
+      22.2792968,
+      114.1628907
+    ],
+    "arrival": [
+      31.2312707,
+      121.4700152
+    ],
+    "departure_label": "香港 Hong Kong, 中国",
+    "arrival_label": "Shanghaï, 上海市, 中国",
+    "distance_km": 1230.94,
+    "departure_date": "2026-01-14",
+    "arrival_date": null
+>>>>>>> bae3f53 (Export stays in cities.json)
+  },
+  {
+    "kind": "transport",
     "name": "[Transport] - SHL → KMG",
     "type": "Train",
+<<<<<<< HEAD
     "departure_date": "2026-01-10",
     "arrival_date": null,
+=======
+    "departure": [
+      27.8717021,
+      99.8365499
+    ],
+>>>>>>> bae3f53 (Export stays in cities.json)
     "arrival": [
       25.0363006,
       102.7086139
     ],
+<<<<<<< HEAD
     "arrival_label": "昆明市, 云南省, 中国",
     "kind": "transport",
     "departure": [
@@ -88,10 +161,19 @@
     ],
     "departure_label": "Shangri-La, 云南省, 中国",
     "distance_km": 425.58
+=======
+    "departure_label": "Shangri-La, 云南省, 中国",
+    "arrival_label": "昆明市, 云南省, 中国",
+    "distance_km": 425.58,
+    "departure_date": "2026-01-10",
+    "arrival_date": null
+>>>>>>> bae3f53 (Export stays in cities.json)
   },
   {
+    "kind": "transport",
     "name": "[Transport] - SHG → KMG",
     "type": "Train",
+<<<<<<< HEAD
     "departure_date": "2026-01-02",
     "arrival_date": null,
     "arrival": [
@@ -100,10 +182,13 @@
     ],
     "arrival_label": "昆明市, 云南省, 中国",
     "kind": "transport",
+=======
+>>>>>>> bae3f53 (Export stays in cities.json)
     "departure": [
       31.2312707,
       121.4700152
     ],
+<<<<<<< HEAD
     "departure_label": "Shangaï, 上海市, 中国",
     "distance_km": 1961.14
   },
@@ -124,5 +209,34 @@
     ],
     "departure_label": "昆明市, 云南省, 中国",
     "distance_km": 320.56
+=======
+    "arrival": [
+      25.0363006,
+      102.7086139
+    ],
+    "departure_label": "Shangaï, 上海市, 中国",
+    "arrival_label": "昆明市, 云南省, 中国",
+    "distance_km": 1961.14,
+    "departure_date": "2026-01-02",
+    "arrival_date": null
+  },
+  {
+    "kind": "transport",
+    "name": "[Transport] - KMG →  LJG",
+    "type": "Train",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "arrival": [
+      26.8595868,
+      100.2249797
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "arrival_label": "丽江市, 云南省, 中国",
+    "distance_km": 320.56,
+    "departure_date": "2026-01-03",
+    "arrival_date": null
+>>>>>>> bae3f53 (Export stays in cities.json)
   }
 ]

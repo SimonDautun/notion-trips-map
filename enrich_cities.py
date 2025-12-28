@@ -169,6 +169,7 @@ def export_cities_json(filepath="cities.json"):
     trips = []
     cursor = None
 
+    # on prend toutes les lignes qui ont au moins "Arrival details" (ville où on est / arrive)
     filter_payload = {
         "and": [
             {"property": "Arrival details", "rich_text": {"is_not_empty": True}}
@@ -179,47 +180,47 @@ def export_cities_json(filepath="cities.json"):
         res = query_pages(filter_payload=filter_payload, start_cursor=cursor)
 
         for page in res.get("results", []):
-            trip_type = extract_select(page, "Type") or "Unknown"
             name = extract_title(page, "Name") or "Trip"
-            dep_date, arr_date = extract_date_range(page, "Date")
+            trip_type = extract_select(page, "Type") or "Unknown"
+            start, end = extract_date_range(page, "Date")  # start/end
 
             arr_details = extract_rich_text(page, "Arrival details") or ""
             dep_details = extract_rich_text(page, "Departure details") or ""
 
-            arr = parse_details(arr_details)
-            dep = parse_details(dep_details)
+            arr = parse_details(arr_details)          # Arrival = ville d'arrivée (ou ville du séjour)
+            dep = parse_details(dep_details)          # Departure = ville de départ (peut être vide pour séjour)
 
             if not arr:
-                continue  # impossible à placer sur la carte
+                continue
 
-            base = {
-                "name": name,
-                "type": trip_type,
-                "departure_date": dep_date,
-                "arrival_date": arr_date,
-                "arrival": [arr["lat"], arr["lon"]],
-                "arrival_label": arr["label"],
-            }
-
-            # Stay (Hotel/Nid d'aigle): pas de departure
+            # --- STAY (pas de departure details) ---
             if not dep:
                 trips.append({
-                    **base,
                     "kind": "stay",
-                    "departure": None,
-                    "departure_label": None,
-                    "distance_km": None,
+                    "name": name,
+                    "type": trip_type,
+                    "arrival": [arr["lat"], arr["lon"]],
+                    "arrival_label": arr["label"],
+                    # pour un séjour: start = arrivée sur place, end = départ
+                    "arrival_date": start,
+                    "departure_date": end,
                 })
                 continue
 
-            # Transport
+            # --- TRANSPORT ---
             dist = haversine_km(dep["lat"], dep["lon"], arr["lat"], arr["lon"])
             trips.append({
-                **base,
                 "kind": "transport",
+                "name": name,
+                "type": trip_type,
                 "departure": [dep["lat"], dep["lon"]],
+                "arrival": [arr["lat"], arr["lon"]],
                 "departure_label": dep["label"],
+                "arrival_label": arr["label"],
                 "distance_km": round(dist, 2),
+                # pour un trajet: start = départ, end = arrivée
+                "departure_date": start,
+                "arrival_date": end,
             })
 
         if not res.get("has_more"):
@@ -229,7 +230,7 @@ def export_cities_json(filepath="cities.json"):
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(trips, f, ensure_ascii=False, indent=2)
 
-    print(f"Exported {len(trips)} record(s) to {filepath}")
+    print(f"Exported {len(trips)} item(s) to {filepath}")
 
 
 def main():
