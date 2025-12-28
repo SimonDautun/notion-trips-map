@@ -27,10 +27,13 @@
       102.0
     ],
     "arrival_label": "Yunan, 云南省, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      25.0,
+      102.0
+    ],
+    "departure_label": "Yunan, 云南省, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "[Transport] - HKG → BJG",
@@ -150,10 +153,13 @@
       102.7086139
     ],
     "arrival_label": "昆明市, 云南省, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "[Hotel] - HKG",
@@ -165,10 +171,13 @@
       114.1628907
     ],
     "arrival_label": "香港 Hong Kong, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      22.2792968,
+      114.1628907
+    ],
+    "departure_label": "香港 Hong Kong, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "[Hotel] - KMG - 1",
@@ -180,10 +189,13 @@
       102.7086139
     ],
     "arrival_label": "昆明市, 云南省, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      25.0363006,
+      102.7086139
+    ],
+    "departure_label": "昆明市, 云南省, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "[Hotel] - BJG",
@@ -195,10 +207,13 @@
       116.412144
     ],
     "arrival_label": "Beijing, 北京市, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      40.190632,
+      116.412144
+    ],
+    "departure_label": "Beijing, 北京市, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "Trip",
@@ -210,10 +225,13 @@
       121.4700152
     ],
     "arrival_label": "Shanghaï, 上海市, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "departure_label": "Shangaï, 上海市, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "Trip",
@@ -225,10 +243,13 @@
       121.4700152
     ],
     "arrival_label": "Shanghaï, 上海市, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "departure_label": "Shangaï, 上海市, 中国",
+    "distance_km": 0.0
   },
   {
     "name": "Trip",
@@ -240,9 +261,12 @@
       121.4700152
     ],
     "arrival_label": "Shanghaï, 上海市, 中国",
-    "kind": "stay",
-    "departure": null,
-    "departure_label": null,
-    "distance_km": null
+    "kind": "transport",
+    "departure": [
+      31.2312707,
+      121.4700152
+    ],
+    "departure_label": "Shangaï, 上海市, 中国",
+    "distance_km": 0.0
   }
 ]
