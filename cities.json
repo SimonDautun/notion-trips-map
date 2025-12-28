@@ -18,18 +18,6 @@
     "arrival_date": null
   },
   {
-    "kind": "stay",
-    "name": "Yunan Trip - Ciel Chine",
-    "type": "Hotel",
-    "arrival": [
-      25.0,
-      102.0
-    ],
-    "arrival_label": "Yunan, 云南省, 中国",
-    "arrival_date": "2026-01-03",
-    "departure_date": "2026-01-09"
-  },
-  {
     "kind": "transport",
     "name": "[Transport] - HKG → BJG",
     "type": "Train",
