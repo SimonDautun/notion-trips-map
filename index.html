@@ -236,6 +236,49 @@
         return 3;
       }
 
+      function addArrow(line, color) {
+        // 1) si arrowHead existe, on l'utilise
+        if (L.polylineDecorator && L.Symbol && typeof L.Symbol.arrowHead === "function") {
+          return L.polylineDecorator(line, {
+            patterns: [{
+              offset: "60%",
+              repeat: 0,
+              symbol: L.Symbol.arrowHead({
+                pixelSize: 12,
+                polygon: false,
+                pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
+              })
+            }]
+          }).addTo(transportLayer);
+        }
+
+        // 2) fallback: un "triangle" via marker SVG au milieu (orienté approx)
+        const latlngs = line.getLatLngs();
+        const midIdx = Math.floor(latlngs.length / 2);
+        const a = latlngs[Math.max(0, midIdx - 2)];
+        const b = latlngs[Math.min(latlngs.length - 1, midIdx + 2)];
+
+        // angle approx (2D)
+        const angle = Math.atan2(b.lat - a.lat, b.lng - a.lng) * 180 / Math.PI;
+
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+            <path d="M12 2 L22 22 L12 17 L2 22 Z" fill="${color}"/>
+          </svg>
+        `;
+
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="transform: rotate(${angle}deg); transform-origin: 50% 50%;">${svg}</div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
+        });
+
+        const mid = latlngs[midIdx];
+        return L.marker(mid, { icon, interactive: false }).addTo(transportLayer);
+      }
+
+
       function midpoint(a, b) {
         return L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
       }
@@ -417,19 +460,23 @@
           }).addTo(transportLayer);
 
           // Arrow head (direction)
-          L.polylineDecorator(line, {
-            patterns: [
-              {
-                offset: "60%",
-                repeat: 0,
-                symbol: L.Symbol.arrowHead({
-                  pixelSize: 12,
-                  polygon: false,
-                  pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
-                })
-              }
-            ]
-          }).addTo(transportLayer);
+          if (L.polylineDecorator && L.Symbol && typeof L.Symbol.arrowHead === "function") {
+            L.polylineDecorator(line, {
+              patterns: [
+                {
+                  offset: "60%",
+                  repeat: 0,
+                  symbol: L.Symbol.arrowHead({
+                    pixelSize: 12,
+                    polygon: false,
+                    pathOptions: { stroke: true, color, weight: 2, opacity: 0.95 }
+                  })
+                }
+              ]
+            }).addTo(transportLayer);
+          } else {
+            console.warn("Arrowheads désactivés (plugin non chargé ou arrowHead indisponible)");
+          }
 
           // City markers (NO transport popup on them)
           markerCluster.addLayer(L.marker(depLatLng, { icon: depIcon }));
