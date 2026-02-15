@@ -1,8 +1,8 @@
 [
   {
     "kind": "transport",
-    "name": "[Transport] - HKG → BJG",
-    "type": "Train",
+    "name": "[Transport] - RBA → FEZ",
+    "type": "Flight",
     "departure": [
       34.0346534,
       -5.0161926
@@ -19,7 +19,7 @@
   },
   {
     "kind": "transport",
-    "name": "[Transport] - KMG → HKG",
+    "name": "[Transport] - TNG → RBA",
     "type": "Train",
     "departure": [
       35.7696302,
@@ -37,7 +37,7 @@
   },
   {
     "kind": "transport",
-    "name": "[Transport] - HKG → SHG",
+    "name": "[Transport] - RBA → FEZ",
     "type": "Train",
     "departure": [
       34.0218454,
@@ -55,7 +55,7 @@
   },
   {
     "kind": "transport",
-    "name": "[Transport] - SHG → KMG",
+    "name": "[Transport] - GDL →MAD",
     "type": "Train",
     "departure": [
       48.8588897,
@@ -73,7 +73,7 @@
   },
   {
     "kind": "transport",
-    "name": "[Transport] - KMG →  LJG",
+    "name": "[Transport] - MAD →  TNG",
     "type": "Train",
     "departure": [
       40.416782,
@@ -91,31 +91,31 @@
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - KMG - 2",
+    "name": "[Hotel] - TNG",
     "type": "Hotel",
     "arrival": [
       35.7696302,
       -5.8033522
     ],
     "arrival_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
-    "arrival_date": "2026-05-20",
-    "departure_date": "2026-05-23"
+    "arrival_date": "2026-05-21",
+    "departure_date": "2026-05-24"
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - HKG",
+    "name": "[Hotel] - RBA",
     "type": "Hotel",
     "arrival": [
       34.0218454,
       -6.8408929
     ],
     "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
-    "arrival_date": "2026-05-23",
+    "arrival_date": "2026-05-24",
     "departure_date": "2026-05-28"
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - KMG - 1",
+    "name": "[Hotel] - MAD",
     "type": "Hotel",
     "arrival": [
       40.416782,
@@ -123,11 +123,11 @@
     ],
     "arrival_label": "Madrid, Comunidad de Madrid, España",
     "arrival_date": "2026-05-17",
-    "departure_date": "2026-05-20"
+    "departure_date": "2026-05-21"
   },
   {
     "kind": "stay",
-    "name": "[Nid d’aigle] - SHG 2",
+    "name": "[Nid d’aigle] - FEZ",
     "type": "Hotel",
     "arrival": [
       34.0346534,
