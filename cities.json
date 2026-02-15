@@ -32,7 +32,7 @@
     "departure_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
     "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
     "distance_km": 216.15,
-    "departure_date": "2026-05-23",
+    "departure_date": "2026-05-24",
     "arrival_date": null
   },
   {
@@ -98,7 +98,7 @@
       -5.8033522
     ],
     "arrival_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
-    "arrival_date": "2026-05-21",
+    "arrival_date": "2026-05-20",
     "departure_date": "2026-05-24"
   },
   {
@@ -123,7 +123,7 @@
     ],
     "arrival_label": "Madrid, Comunidad de Madrid, España",
     "arrival_date": "2026-05-17",
-    "departure_date": "2026-05-21"
+    "departure_date": "2026-05-20"
   },
   {
     "kind": "stay",
