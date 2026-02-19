@@ -1,224 +1,140 @@
 [
   {
     "kind": "transport",
-    "name": "[Transport] - BJG → SHG",
-    "type": "Train",
-    "departure": [
-      40.190632,
-      116.412144
-    ],
-    "arrival": [
-      31.2312707,
-      121.4700152
-    ],
-    "departure_label": "Beijing, 北京市, 中国",
-    "arrival_label": "Shanghaï, 上海市, 中国",
-    "distance_km": 1095.4,
-    "departure_date": "2026-01-20",
-    "arrival_date": null
-  },
-  {
-    "kind": "stay",
-    "name": "Yunan Trip - Ciel Chine",
-    "type": "Hotel",
-    "arrival": [
-      25.0,
-      102.0
-    ],
-    "arrival_label": "Yunan, 云南省, 中国",
-    "arrival_date": "2026-01-03",
-    "departure_date": "2026-01-09"
-  },
-  {
-    "kind": "transport",
-    "name": "[Transport] - HKG → BJG",
-    "type": "Train",
-    "departure": [
-      31.2312707,
-      121.4700152
-    ],
-    "arrival": [
-      40.190632,
-      116.412144
-    ],
-    "departure_label": "Shanghaï, 上海市, 中国",
-    "arrival_label": "Beijing, 北京市, 中国",
-    "distance_km": 1095.4,
-    "departure_date": "2026-01-18",
-    "arrival_date": null
-  },
-  {
-    "kind": "transport",
-    "name": "[Transport] - KMG → HKG",
+    "name": "[Transport] - RBA → FEZ",
     "type": "Flight",
     "departure": [
-      25.0363006,
-      102.7086139
+      34.0346534,
+      -5.0161926
     ],
     "arrival": [
-      22.2792968,
-      114.1628907
+      48.8534951,
+      2.3483915
     ],
-    "departure_label": "昆明市, 云南省, 中国",
-    "arrival_label": "香港 Hong Kong, 中国",
-    "distance_km": 1205.75,
-    "departure_date": "2026-01-11",
+    "departure_label": "Fès ⴼⴰⵙ فاس, Fès-Meknès ⴼⴰⵙ-ⵎⴽⵏⴰⵙ فاس-مكناس, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_label": "Paris, Île-de-France, France",
+    "distance_km": 1756.34,
+    "departure_date": "2026-05-31",
     "arrival_date": null
   },
   {
     "kind": "transport",
-    "name": "[Transport] - HKG → SHG",
+    "name": "[Transport] - TNG → RBA",
     "type": "Train",
     "departure": [
-      22.2792968,
-      114.1628907
+      35.7696302,
+      -5.8033522
     ],
     "arrival": [
-      31.2312707,
-      121.4700152
+      34.0218454,
+      -6.8408929
     ],
-    "departure_label": "香港 Hong Kong, 中国",
-    "arrival_label": "Shanghaï, 上海市, 中国",
-    "distance_km": 1230.94,
-    "departure_date": "2026-01-14",
+    "departure_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "distance_km": 216.15,
+    "departure_date": "2026-05-24",
     "arrival_date": null
   },
   {
     "kind": "transport",
-    "name": "[Transport] - SHL → KMG",
+    "name": "[Transport] - RBA → FEZ",
     "type": "Train",
     "departure": [
-      27.8717021,
-      99.8365499
+      34.0218454,
+      -6.8408929
     ],
     "arrival": [
-      25.0363006,
-      102.7086139
+      34.0346534,
+      -5.0161926
     ],
-    "departure_label": "Shangri-La, 云南省, 中国",
-    "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 425.58,
-    "departure_date": "2026-01-10",
+    "departure_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_label": "Fès ⴼⴰⵙ فاس, Fès-Meknès ⴼⴰⵙ-ⵎⴽⵏⴰⵙ فاس-مكناس, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "distance_km": 168.16,
+    "departure_date": "2026-05-28",
     "arrival_date": null
   },
   {
     "kind": "transport",
-    "name": "[Transport] - SHG → KMG",
+    "name": "[Transport] - GDL →MAD",
     "type": "Train",
     "departure": [
-      31.2312707,
-      121.4700152
+      48.8588897,
+      2.320041
     ],
     "arrival": [
-      25.0363006,
-      102.7086139
+      40.416782,
+      -3.703507
     ],
-    "departure_label": "Shangaï, 上海市, 中国",
-    "arrival_label": "昆明市, 云南省, 中国",
-    "distance_km": 1961.14,
-    "departure_date": "2026-01-02",
+    "departure_label": "Paris, Île-de-France, France",
+    "arrival_label": "Madrid, Comunidad de Madrid, España",
+    "distance_km": 1051.96,
+    "departure_date": "2026-05-17",
     "arrival_date": null
   },
   {
     "kind": "transport",
-    "name": "[Transport] - KMG →  LJG",
+    "name": "[Transport] - MAD →  TNG",
     "type": "Train",
     "departure": [
-      25.0363006,
-      102.7086139
+      40.416782,
+      -3.703507
     ],
     "arrival": [
-      26.8595868,
-      100.2249797
+      35.7696302,
+      -5.8033522
     ],
-    "departure_label": "昆明市, 云南省, 中国",
-    "arrival_label": "丽江市, 云南省, 中国",
-    "distance_km": 320.56,
-    "departure_date": "2026-01-03",
+    "departure_label": "Madrid, Comunidad de Madrid, España",
+    "arrival_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "distance_km": 548.39,
+    "departure_date": "2026-05-20",
     "arrival_date": null
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - KMG - 2",
+    "name": "[Hotel] - TNG",
     "type": "Hotel",
     "arrival": [
-      25.0363006,
-      102.7086139
+      35.7696302,
+      -5.8033522
     ],
-    "arrival_label": "昆明市, 云南省, 中国",
-    "arrival_date": "2026-01-10",
-    "departure_date": "2026-01-11"
+    "arrival_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_date": "2026-05-20",
+    "departure_date": "2026-05-24"
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - HKG",
+    "name": "[Hotel] - RBA",
     "type": "Hotel",
     "arrival": [
-      22.2792968,
-      114.1628907
+      34.0218454,
+      -6.8408929
     ],
-    "arrival_label": "香港 Hong Kong, 中国",
-    "arrival_date": "2026-01-11",
-    "departure_date": "2026-01-14"
+    "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_date": "2026-05-24",
+    "departure_date": "2026-05-28"
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - KMG - 1",
+    "name": "[Hotel] - MAD",
     "type": "Hotel",
     "arrival": [
-      25.0363006,
-      102.7086139
+      40.416782,
+      -3.703507
     ],
-    "arrival_label": "昆明市, 云南省, 中国",
-    "arrival_date": "2026-01-02",
-    "departure_date": "2026-01-03"
+    "arrival_label": "Madrid, Comunidad de Madrid, España",
+    "arrival_date": "2026-05-17",
+    "departure_date": "2026-05-20"
   },
   {
     "kind": "stay",
-    "name": "[Hotel] - BJG",
+    "name": "[Nid d’aigle] - FEZ",
     "type": "Hotel",
     "arrival": [
-      40.190632,
-      116.412144
+      34.0346534,
+      -5.0161926
     ],
-    "arrival_label": "Beijing, 北京市, 中国",
-    "arrival_date": "2026-01-18",
-    "departure_date": "2026-01-20"
-  },
-  {
-    "kind": "stay",
-    "name": "[Nid d’aigle] - SHG 1",
-    "type": "Le nid d'aigle",
-    "arrival": [
-      31.2312707,
-      121.4700152
-    ],
-    "arrival_label": "Shangaï, 上海市, 中国",
-    "arrival_date": "2025-12-30",
-    "departure_date": "2026-01-02"
-  },
-  {
-    "kind": "stay",
-    "name": "[Nid d’aigle] - SHG 2",
-    "type": "Le nid d'aigle",
-    "arrival": [
-      31.2312707,
-      121.4700152
-    ],
-    "arrival_label": "Shangaï, 上海市, 中国",
-    "arrival_date": "2026-01-14",
-    "departure_date": "2026-01-18"
-  },
-  {
-    "kind": "stay",
-    "name": "Item",
-    "type": "Le nid d'aigle",
-    "arrival": [
-      31.2312707,
-      121.4700152
-    ],
-    "arrival_label": "Shangaï, 上海市, 中国",
-    "arrival_date": "2026-01-20",
-    "departure_date": "2026-01-21"
+    "arrival_label": "Fès ⴼⴰⵙ فاس, Fès-Meknès ⴼⴰⵙ-ⵎⴽⵏⴰⵙ فاس-مكناس, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_date": "2026-05-28",
+    "departure_date": "2026-05-31"
   }
 ]
