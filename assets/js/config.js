@@ -1,5 +1,4 @@
 window.APP_CONFIG = {
-  initialView: { center: [35, 105], zoom: 4 }, // Chine
   tiles: {
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     maxZoom: 19,

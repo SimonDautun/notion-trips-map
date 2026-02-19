@@ -89,6 +89,30 @@
     cities.forEach((c) => TripsMap.addCityMarker(c.latlng, c.name));
 
     UI.setKPIs({ totalNights, totalKm });
+
+    // ✅ Ajoutez ce bloc à la fin de la fonction render()
+    function fitMapToBounds() {
+      const boundsGroup = L.featureGroup();
+
+      records.forEach(r => {
+        if (r.departure && Array.isArray(r.departure) && r.departure.length === 2) {
+          boundsGroup.addLayer(L.marker(r.departure));
+        }
+        if (r.arrival && Array.isArray(r.arrival) && r.arrival.length === 2) {
+          boundsGroup.addLayer(L.marker(r.arrival));
+        }
+      });
+
+      if (boundsGroup.getBounds().isValid()) {
+        map.fitBounds(boundsGroup.getBounds(), {
+          padding: [50, 50],
+          maxZoom: 10
+        });
+      }
+    }
+
+    // Appel de la fonction après le rendu
+    fitMapToBounds();
   }
 
   try {

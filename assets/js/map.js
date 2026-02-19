@@ -63,10 +63,7 @@ window.TripsMap = (() => {
 
   function init() {
     // Create map
-    state.map = L.map("map", { worldCopyJump: true }).setView(
-      APP_CONFIG.initialView.center,
-      APP_CONFIG.initialView.zoom
-    );
+    state.map = L.map("map", { worldCopyJump: true });
 
     // Tiles
     L.tileLayer(APP_CONFIG.tiles.url, {
