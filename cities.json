@@ -20,7 +20,7 @@
   {
     "kind": "transport",
     "name": "[Transport] - TNG → RBA",
-    "type": "Train",
+    "type": "Voiture",
     "departure": [
       35.7696302,
       -5.8033522
@@ -38,7 +38,7 @@
   {
     "kind": "transport",
     "name": "[Transport] - RBA → FEZ",
-    "type": "Train",
+    "type": "Voiture",
     "departure": [
       34.0218454,
       -6.8408929
@@ -110,7 +110,7 @@
       -6.8408929
     ],
     "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
-    "arrival_date": "2026-05-24",
+    "arrival_date": "2026-05-26",
     "departure_date": "2026-05-28"
   },
   {
@@ -136,5 +136,35 @@
     "arrival_label": "Fès ⴼⴰⵙ فاس, Fès-Meknès ⴼⴰⵙ-ⵎⴽⵏⴰⵙ فاس-مكناس, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
     "arrival_date": "2026-05-28",
     "departure_date": "2026-05-31"
+  },
+  {
+    "kind": "transport",
+    "name": "[Transport] - TNG → RBA (1)",
+    "type": "Voiture",
+    "departure": [
+      35.7696302,
+      -5.8033522
+    ],
+    "arrival": [
+      34.0218454,
+      -6.8408929
+    ],
+    "departure_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "distance_km": 216.15,
+    "departure_date": "2026-05-26",
+    "arrival_date": null
+  },
+  {
+    "kind": "stay",
+    "name": "Item",
+    "type": "Hotel",
+    "arrival": [
+      35.1687748,
+      -5.2683454
+    ],
+    "arrival_label": "Chefchaouen ⴰⵛⵛⴰⵡⵏ شفشاون, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "arrival_date": "2026-05-24",
+    "departure_date": "2026-05-26"
   }
 ]
