@@ -1,1 +1,1 @@
-# notion-trips-map 1
+# notion-trips-map
