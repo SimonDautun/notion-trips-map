@@ -1,7 +1,7 @@
 [
   {
     "kind": "transport",
-    "name": "[Transport] - RBA → FEZ",
+    "name": "[Transport] - FEZ → Paris",
     "type": "Flight",
     "departure": [
       34.0346534,
@@ -55,7 +55,7 @@
   },
   {
     "kind": "transport",
-    "name": "[Transport] - GDL →MAD",
+    "name": "[Transport] - GDL →BAR",
     "type": "Train",
     "departure": [
       48.8588897,
@@ -127,7 +127,7 @@
   },
   {
     "kind": "stay",
-    "name": "[Nid d’aigle] - FEZ",
+    "name": "[Hotel] - FEZ",
     "type": "Hotel",
     "arrival": [
       34.0346534,
@@ -142,16 +142,16 @@
     "name": "[Transport] - TNG → RBA (1)",
     "type": "Voiture",
     "departure": [
-      35.7696302,
-      -5.8033522
+      35.1687748,
+      -5.2683454
     ],
     "arrival": [
       34.0218454,
       -6.8408929
     ],
-    "departure_label": "Tanger طنجة, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
+    "departure_label": "Chefchaouen ⴰⵛⵛⴰⵡⵏ شفشاون, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
     "arrival_label": "Rabat ⵔⴱⴰⵟ الرباط, Rabat-Salé-Kénitra ⵔⴱⴰⵟ-ⵙⵍⴰ-ⵇⵏⵉⵟⵔⴰ الرباط-سلا-القنيطرة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
-    "distance_km": 216.15,
+    "distance_km": 192.31,
     "departure_date": "2026-05-26",
     "arrival_date": null
   },
@@ -166,5 +166,23 @@
     "arrival_label": "Chefchaouen ⴰⵛⵛⴰⵡⵏ شفشاون, Tanger-Tétouan-Al Hoceïma ⵟⴰⵏⵊ-ⵟⵉⵜⴰⵡⵉⵏ-ⵍⵃⵓⵙⵉⵎⴰ طنجة تطوان الحسيمة, Maroc ⵍⵎⵖⵔⵉⴱ المغرب",
     "arrival_date": "2026-05-24",
     "departure_date": "2026-05-26"
+  },
+  {
+    "kind": "transport",
+    "name": "[Transport] - BAR →MAD",
+    "type": "Train",
+    "departure": [
+      48.8588897,
+      2.320041
+    ],
+    "arrival": [
+      40.416782,
+      -3.703507
+    ],
+    "departure_label": "Paris, Île-de-France, France",
+    "arrival_label": "Madrid, Comunidad de Madrid, España",
+    "distance_km": 1051.96,
+    "departure_date": "2026-05-17",
+    "arrival_date": null
   }
 ]
